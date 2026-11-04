@@ -1,0 +1,11 @@
+torch==2.15.0
+transformers==5.22.1
+datasets==5.1.0
+peft==0.21.2
+accelerate==1.15.0
+bitsandbytes==0.50.2
+trl==1.17.1
+wandb==0.31.0
+pyyaml==6.0.3
+pytest==9.2.0
+bfcl-eval==2026.3.23
