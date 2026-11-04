@@ -15,7 +15,9 @@ else
   git clone "$REPO_URL" "$REPO_DIR"
 fi
 
-pip install --quiet -r "$REPO_DIR/requirements.txt"
+# Keep Kaggle's own torch: it matches the GPU driver and the preinstalled torchvision.
+grep -v '^torch==' "$REPO_DIR/requirements.txt" > /tmp/kaggle_requirements.txt
+pip install --quiet -r /tmp/kaggle_requirements.txt
 
 HF_TOKEN="$(read_secret HF_TOKEN)"
 WANDB_API_KEY="$(read_secret WANDB_API_KEY)"

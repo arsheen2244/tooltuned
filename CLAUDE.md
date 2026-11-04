@@ -26,11 +26,11 @@ outputs/         # checkpoints and adapters (git-ignored)
 
 - **Where things run:** training and eval run on a free Kaggle notebook (T4 GPU, 16 GB). Data prep runs on a CPU laptop, so it must not need a GPU.
 - **Precision:** the T4 has no bf16 support, so use fp16.
-- **Python:** 3.11, with the src layout above.
+- **Python:** 3.11 on the laptop and in the BFCL environment, with the src layout above. Kaggle notebooks themselves currently run 3.13 and keep Kaggle's own `torch`.
 - **Secrets:** never put secrets in code. Read `HF_TOKEN` and `WANDB_API_KEY` from environment variables.
 - **Code style:** keep functions small and typed.
 - **Tests:** every module gets tests, added alongside the code they test.
-- **BFCL:** runs in its own environment, created by `scripts/run_bfcl.sh`, because its `vllm` needs a different `torch` from `requirements.txt`. BFCL has no built-in Qwen2.5 entry, so `scripts/bfcl_cli.py` registers `Qwen/Qwen2.5-1.5B-Instruct-FC`.
+- **BFCL:** runs in its own Python 3.11 environment, created by `scripts/run_bfcl.sh`, because its `vllm` needs Python below 3.13 and a different `torch`. BFCL has no built-in Qwen2.5 entry, so `scripts/bfcl_cli.py` registers `Qwen/Qwen2.5-1.5B-Instruct-FC`.
 
 ## Setup and tests
 

@@ -4,6 +4,9 @@
 set -euo pipefail
 
 BFCL_VERSION="2026.3.23"
+BFCL_TRANSFORMERS_VERSION="4.51.3"
+BFCL_OPENAI_VERSION="1.90.0"
+BFCL_SOUNDFILE_VERSION="0.14.0"
 CATEGORIES="simple_python,multiple,parallel,parallel_multiple,irrelevance"
 VENV_DIR="/tmp/bfcl-venv"
 export BFCL_PROJECT_ROOT="/kaggle/working/bfcl"
@@ -30,10 +33,17 @@ fi
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# vllm needs torch==2.6.0, which clashes with requirements.txt, so BFCL gets its own environment.
+# BFCL's vllm needs Python below 3.13 and torch==2.6.0, which clash with Kaggle's defaults,
+# so it gets its own Python 3.11 environment. vllm 0.8.5 is from 2025, so transformers and
+# openai are pinned to versions close to its release rather than today's latest.
 if [[ ! -x "$VENV_DIR/bin/bfcl" ]]; then
-  python -m venv "$VENV_DIR"
-  "$VENV_DIR/bin/pip" install --quiet "bfcl-eval[oss_eval_vllm]==$BFCL_VERSION"
+  pip install --quiet uv
+  uv venv --clear --python 3.11 "$VENV_DIR"
+  uv pip install --quiet --python "$VENV_DIR/bin/python" \
+    "bfcl-eval[oss_eval_vllm]==$BFCL_VERSION" \
+    "transformers==$BFCL_TRANSFORMERS_VERSION" \
+    "openai==$BFCL_OPENAI_VERSION" \
+    "soundfile==$BFCL_SOUNDFILE_VERSION"  # qwen-agent imports this without declaring it.
 fi
 export PATH="$VENV_DIR/bin:$PATH"
 export CUDA_VISIBLE_DEVICES=0
