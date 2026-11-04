@@ -8,4 +8,3 @@ trl==1.17.1
 wandb==0.31.0
 pyyaml==6.0.3
 pytest==9.2.0
-bfcl-eval==2026.3.23

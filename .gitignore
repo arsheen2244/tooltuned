@@ -5,6 +5,9 @@ outputs/
 # Secrets
 .env
 
+# Local Claude Code settings
+.claude/settings.local.json
+
 # Python
 __pycache__/
 *.py[cod]

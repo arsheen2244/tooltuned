@@ -14,6 +14,7 @@ src/tooltuned/
   train.py       # QLoRA fine-tuning
   evaluate.py    # BFCL scoring against the base model
 scripts/         # command-line entry points
+notebooks/       # Kaggle notebook instructions
 configs/         # YAML configs
 tests/           # pytest tests
 results/         # scores (committed)
@@ -29,6 +30,7 @@ outputs/         # checkpoints and adapters (git-ignored)
 - **Secrets:** never put secrets in code. Read `HF_TOKEN` and `WANDB_API_KEY` from environment variables.
 - **Code style:** keep functions small and typed.
 - **Tests:** every module gets tests, added alongside the code they test.
+- **BFCL:** runs in its own environment, created by `scripts/run_bfcl.sh`, because its `vllm` needs a different `torch` from `requirements.txt`. BFCL has no built-in Qwen2.5 entry, so `scripts/bfcl_cli.py` registers `Qwen/Qwen2.5-1.5B-Instruct-FC`.
 
 ## Setup and tests
 
