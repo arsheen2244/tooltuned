@@ -66,5 +66,46 @@
       }
     ],
     "unsupported_type": []
+  },
+  "final_dataset": {
+    "seed": 42,
+    "raw_rows": 60000,
+    "rows_passing_verifier": 58485,
+    "no_tool_rows_generated": 6498,
+    "bfcl_filter": {
+      "bfcl_questions_compared": 1240,
+      "method": "normalized text, then character 8-grams; removed above 50% of the shorter text's grams",
+      "removed_tool_call_rows": {
+        "exact": 6,
+        "near": 4030
+      },
+      "removed_no_tool_rows": {
+        "exact": 0,
+        "near": 400
+      }
+    },
+    "pool_after_filter": {
+      "tool_call_rows": 55964,
+      "no_tool_rows": 6098
+    },
+    "splits": {
+      "validation": {
+        "rows": 500,
+        "tool_call": 450,
+        "no_tool": 50
+      },
+      "train_verified": {
+        "rows": 10000,
+        "tool_call": 9000,
+        "no_tool": 1000
+      },
+      "train_unverified": {
+        "rows": 10000,
+        "tool_call": 9000,
+        "no_tool": 1000
+      }
+    },
+    "unverified_train_rows_not_in_verified_train": 198,
+    "hub_repo": "asheeee24/tooltuned-fc-data"
   }
 }

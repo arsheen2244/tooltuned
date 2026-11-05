@@ -4,16 +4,24 @@ import json
 import os
 import random
 import re
+from collections import Counter
 from functools import lru_cache
-from typing import Any
+from typing import Any, NamedTuple
 
-from datasets import Dataset, load_dataset
+from datasets import Dataset, DatasetDict, load_dataset
+from huggingface_hub import HfApi
 from transformers import PreTrainedTokenizerBase
 
 from tooltuned.verify import verify_row
 
 DATASET_NAME = "Salesforce/xlam-function-calling-60k"
 BASE_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
+
+HUB_DATASET_NAME = "tooltuned-fc-data"
+TRAIN_SIZE = 10_000
+VALIDATION_SIZE = 500
+GRAM_SIZE = 8
+MAX_BFCL_OVERLAP = 0.5
 
 NO_TOOL_FRACTION = 0.1
 MAX_DONOR_ATTEMPTS = 25
@@ -180,3 +188,145 @@ def build_final_dataset(
     final = positives + no_tool
     rng.shuffle(final)
     return final
+
+
+def normalize_text(text: str) -> str:
+    """Lowercase, replace punctuation with spaces and collapse whitespace."""
+    return " ".join(re.sub(r"[^a-z0-9 ]+", " ", text.lower()).split())
+
+
+def char_grams(normalized: str) -> frozenset[str]:
+    """Return every run of GRAM_SIZE characters in already normalized text."""
+    return frozenset(
+        normalized[start : start + GRAM_SIZE]
+        for start in range(len(normalized) - GRAM_SIZE + 1)
+    )
+
+
+class QuestionIndex(NamedTuple):
+    """BFCL questions, arranged so each query only compares against likely matches."""
+
+    normalized: frozenset[str]
+    gram_sets: list[frozenset[str]]
+    questions_by_gram: dict[str, list[int]]
+
+
+def build_question_index(questions: list[str]) -> QuestionIndex:
+    normalized = [normalize_text(question) for question in questions]
+    gram_sets = [char_grams(text) for text in normalized]
+    questions_by_gram: dict[str, list[int]] = {}
+    for index, grams in enumerate(gram_sets):
+        for gram in grams:
+            questions_by_gram.setdefault(gram, []).append(index)
+    return QuestionIndex(frozenset(normalized), gram_sets, questions_by_gram)
+
+
+def bfcl_match(query: str, index: QuestionIndex) -> str:
+    """Return "exact", "near" or "" for how closely a query matches a BFCL question.
+
+    Near means more than half of the shorter text's character 8-grams appear in the
+    other, which also catches a long multi-part query containing a BFCL question.
+    """
+    normalized = normalize_text(query)
+    if normalized in index.normalized:
+        return "exact"
+    grams = char_grams(normalized)
+    shared = Counter(
+        question for gram in grams for question in index.questions_by_gram.get(gram, ())
+    )
+    for question, count in shared.items():
+        if count / min(len(grams), len(index.gram_sets[question])) > MAX_BFCL_OVERLAP:
+            return "near"
+    return ""
+
+
+def remove_bfcl_duplicates(
+    rows: list[Row], index: QuestionIndex
+) -> tuple[list[Row], dict[str, int]]:
+    """Drop rows whose query matches a BFCL question, and count them by match type."""
+    kept: list[Row] = []
+    removed = {"exact": 0, "near": 0}
+    for row in rows:
+        match = bfcl_match(row["query"], index)
+        if match:
+            removed[match] += 1
+        else:
+            kept.append(row)
+    return kept, removed
+
+
+def _first_rows(rows: list[Row], count: int, description: str) -> list[Row]:
+    if len(rows) < count:
+        raise ValueError(f"Need {count} {description} rows, only have {len(rows)}.")
+    return rows[:count]
+
+
+def sample_splits(
+    positives: list[Row],
+    no_tool: list[Row],
+    seed: int = 42,
+    train_size: int = TRAIN_SIZE,
+    validation_size: int = VALIDATION_SIZE,
+    fraction: float = NO_TOOL_FRACTION,
+) -> dict[str, list[Row]]:
+    """Sample validation, verified train and unverified train sets.
+
+    positives holds every tool-call row, including ones the verifier rejects.
+    Both train sets read the same shuffled order and share their no-tool rows, so they
+    differ only where the verifier rejected a row. No query appears in both train and
+    validation, so validation only measures unseen queries.
+    """
+    rng = random.Random(seed)
+    ordered = rng.sample(sorted(positives, key=lambda row: row["id"]), len(positives))
+    ordered_no_tool = rng.sample(sorted(no_tool, key=lambda row: row["id"]), len(no_tool))
+    verified = [row for row in ordered if verify_row(row)[0]]
+
+    validation_no_tool = round(validation_size * fraction)
+    validation = _first_rows(ordered_no_tool, validation_no_tool, "no-tool") + _first_rows(
+        verified, validation_size - validation_no_tool, "verified"
+    )
+    seen = {normalize_text(row["query"]) for row in validation}
+
+    def unseen(rows: list[Row]) -> list[Row]:
+        return [row for row in rows if normalize_text(row["query"]) not in seen]
+
+    train_no_tool = round(train_size * fraction)
+    shared_no_tool = _first_rows(unseen(ordered_no_tool), train_no_tool, "no-tool")
+    train_positive = train_size - train_no_tool
+    splits = {
+        "validation": validation,
+        "train_verified": shared_no_tool
+        + _first_rows(unseen(verified), train_positive, "verified"),
+        "train_unverified": shared_no_tool
+        + _first_rows(unseen(ordered), train_positive, "unverified"),
+    }
+    return {name: rng.sample(rows, len(rows)) for name, rows in splits.items()}
+
+
+def to_hub_row(row: Row) -> Row:
+    """Add the chat messages, as a JSON string because their arguments vary by row."""
+    return {**row, "messages": json.dumps(row_to_messages(row))}
+
+
+def _to_dataset_dict(train: list[Row], validation: list[Row]) -> DatasetDict:
+    return DatasetDict(
+        train=Dataset.from_list([to_hub_row(row) for row in train]),
+        validation=Dataset.from_list([to_hub_row(row) for row in validation]),
+    )
+
+
+def push_splits_to_hub(splits: dict[str, list[Row]], token: str) -> str:
+    """Push both configs to a private dataset under the token's account."""
+    api = HfApi(token=token)
+    repo_id = f"{api.whoami()['name']}/{HUB_DATASET_NAME}"
+    api.create_repo(repo_id, repo_type="dataset", private=True, exist_ok=True)
+    if not api.repo_info(repo_id, repo_type="dataset").private:
+        raise RuntimeError(f"{repo_id} already exists and is public, so nothing was pushed.")
+    for config, train in (
+        ("verified", splits["train_verified"]),
+        ("unverified", splits["train_unverified"]),
+    ):
+        _to_dataset_dict(train, splits["validation"]).push_to_hub(
+            repo_id, config_name=config, private=True, token=token
+        )
+    return repo_id

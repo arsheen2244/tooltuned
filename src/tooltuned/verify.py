@@ -16,6 +16,7 @@ xLAM describes parameters with Python-style type strings rather than JSON Schema
 import json
 import re
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Any
 
 INVALID_ANSWERS_JSON = "invalid_answers_json"
@@ -199,6 +200,13 @@ def verify_row(row: Row) -> tuple[bool, str]:
 def reason_code(reason: str) -> str:
     """Return the code at the start of a rejection reason."""
     return reason.split(":", 1)[0]
+
+
+def update_report(path: Path, updates: dict[str, Any]) -> None:
+    """Add to a JSON report, keeping sections that other scripts wrote."""
+    report = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    report.update(updates)
+    path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 
 
 def build_report(rows: Iterable[Row]) -> dict[str, Any]:
