@@ -1,0 +1,70 @@
+{
+  "total_rows": 60000,
+  "accepted": 58485,
+  "rejected": 1515,
+  "rejected_by_reason": {
+    "invalid_answers_json": 0,
+    "malformed_answers": 0,
+    "invalid_tools": 0,
+    "unknown_function": 0,
+    "unknown_parameter": 0,
+    "missing_required_parameter": 274,
+    "type_mismatch": 1241,
+    "unsupported_type": 0
+  },
+  "note": "Each rejected row is counted once, under the first problem found.",
+  "examples_by_reason": {
+    "invalid_answers_json": [],
+    "malformed_answers": [],
+    "invalid_tools": [],
+    "unknown_function": [],
+    "unknown_parameter": [],
+    "missing_required_parameter": [
+      {
+        "id": 65,
+        "query": "What is the electric field intensity at 3 meters from a 2 Coulomb charge, and at 4 meters from a 3 Coulomb charge?",
+        "answers": "[{\"name\": \"calculate_electric_field\", \"arguments\": {\"charge\": 2, \"distance\": 3}}, {\"name\": \"calculate_electric_field\", \"arguments\": {\"charge\": 3, \"distance\": 4}}]",
+        "tools": "[{\"name\": \"calculate_electric_field\", \"description\": \"Calculate the electric field produced by a charge at a certain distance.\", \"parameters\": {\"charge\": {\"description\": \"Charge in coulombs producing the electric field.\", \"type\": \"int\", \"default\": 8.854e-12}, \"distance\": {\"description\": \"Distance from the charge in meters where the field is being measured.\", \"type\": \"int\", \"default\": 8.854e-12}, \"permitivity\": {\"description\": \"Permitivity of the space where field is being calculated, default is 8.854e-12.\", \"type\": \"float\"}}}]",
+        "reason": "missing_required_parameter: calculate_electric_field needs permitivity"
+      },
+      {
+        "id": 218,
+        "query": "Calculate the electric field produced by a charge of 1 Coulomb at a distance of 1 meter.",
+        "answers": "[{\"name\": \"calculate_electric_field\", \"arguments\": {\"charge\": 1, \"distance\": 1}}]",
+        "tools": "[{\"name\": \"calculate_electric_field\", \"description\": \"Calculate the electric field produced by a charge at a certain distance.\", \"parameters\": {\"charge\": {\"description\": \"Charge in coulombs producing the electric field.\", \"type\": \"int\", \"default\": 8.854e-12}, \"distance\": {\"description\": \"Distance from the charge in meters where the field is being measured.\", \"type\": \"int\", \"default\": 8.854e-12}, \"permitivity\": {\"description\": \"Permitivity of the space where field is being calculated, default is 8.854e-12.\", \"type\": \"float\"}}}, {\"name\": \"cosine_similarity\", \"description\": \"Calculates the cosine similarity between two vectors.\", \"parameters\": {\"vector_a\": {\"description\": \"The first vector.\", \"type\": \"List[float]\"}, \"vector_b\": {\"description\": \"The second vector.\", \"type\": \"List[float]\"}}}]",
+        "reason": "missing_required_parameter: calculate_electric_field needs permitivity"
+      },
+      {
+        "id": 279,
+        "query": "Calculate the electric field at 10 meters from a charge of 2 Coulombs.",
+        "answers": "[{\"name\": \"calculate_electric_field\", \"arguments\": {\"charge\": 2, \"distance\": 10}}]",
+        "tools": "[{\"name\": \"potential_energy\", \"description\": \"Calculates the electrostatic potential energy given the charge and voltage.\", \"parameters\": {\"charge\": {\"description\": \"The electric charge.\", \"type\": \"float\"}, \"voltage\": {\"description\": \"The electric potential difference (voltage).\", \"type\": \"float\"}}}, {\"name\": \"calculate_electric_field\", \"description\": \"Calculate the electric field produced by a charge at a certain distance.\", \"parameters\": {\"charge\": {\"description\": \"Charge in coulombs producing the electric field.\", \"type\": \"int\", \"default\": 8.854e-12}, \"distance\": {\"description\": \"Distance from the charge in meters where the field is being measured.\", \"type\": \"int\", \"default\": 8.854e-12}, \"permitivity\": {\"description\": \"Permitivity of the space where field is being calculated, default is 8.854e-12.\", \"type\": \"float\"}}}, {\"name\": \"cosine_similarity\", \"description\": \"Calculates the cosine similarity between two vectors.\", \"parameters\": {\"vector_a\": {\"description\": \"The first vector.\", \"type\": \"List[float]\"}, \"vector_b\": {\"description\": \"The second vector.\", \"type\": \"List[float]\"}}}]",
+        "reason": "missing_required_parameter: calculate_electric_field needs permitivity"
+      }
+    ],
+    "type_mismatch": [
+      {
+        "id": 53,
+        "query": "Check if a Sudoku board is valid and draw 1 card. The board has numbers filled in a way that each row, column, and 3x3 box should have numbers 1-9 without repetition.",
+        "answers": "[{\"name\": \"is_valid_sudoku\", \"arguments\": {\"board\": [[5, 3, \".\", \".\", 7, \".\", \".\", \".\", \".\"], [6, \".\", \".\", 1, 9, 5, \".\", \".\", \".\"], [\".\", 9, 8, \".\", \".\", \".\", \".\", 6, \".\"], [8, \".\", \".\", \".\", 6, \".\", \".\", \".\", 3], [4, \".\", \".\", 8, \".\", 3, \".\", \".\", 1], [7, \".\", \".\", \".\", 2, \".\", \".\", \".\", 6], [\".\", 6, \".\", \".\", \".\", \".\", 2, 8, \".\"], [\".\", \".\", \".\", 4, 1, 9, \".\", \".\", 5], [\".\", \".\", \".\", \".\", 8, \".\", \".\", 7, 9]]}}, {\"name\": \"draw_cards\", \"arguments\": {\"num_draw\": 1}}]",
+        "tools": "[{\"name\": \"draw_cards\", \"description\": \"Shuffles a standard deck of 52 cards and draws a specified number of cards from the top.\", \"parameters\": {\"num_draw\": {\"description\": \"The number of cards to be drawn. Defaults to 1.\", \"type\": \"int, optional\", \"default\": 1}}}, {\"name\": \"min_meeting_rooms\", \"description\": \"Finds the minimum number of meeting rooms required to accommodate all meetings.\", \"parameters\": {\"intervals\": {\"description\": \"A list of meeting time intervals, where each interval is represented as [start_time, end_time].\", \"type\": \"List[List[int]]\"}}}, {\"name\": \"is_valid_sudoku\", \"description\": \"Checks if a 9x9 Sudoku board is valid.\", \"parameters\": {\"board\": {\"description\": \"The Sudoku board represented as a 2D list of strings.\", \"type\": \"List[List[str]]\"}}}, {\"name\": \"calculate_electric_field\", \"description\": \"Calculate the electric field produced by a charge at a certain distance.\", \"parameters\": {\"charge\": {\"description\": \"Charge in coulombs producing the electric field.\", \"type\": \"int\", \"default\": 8.854e-12}, \"distance\": {\"description\": \"Distance from the charge in meters where the field is being measured.\", \"type\": \"int\", \"default\": 8.854e-12}, \"permitivity\": {\"description\": \"Permitivity of the space where field is being calculated, default is 8.854e-12.\", \"type\": \"float\"}}}]",
+        "reason": "type_mismatch: is_valid_sudoku.board is 'List[List[str]]', got [[5, 3, '.', '.', 7, '.', '.', '.', '.'], [6, '.', '.', 1, 9, 5, '.', '.', '.'], ['.', 9, 8, '.', '.', '.', '.', 6, '.'], [8, '.', '.', '.', 6, '.', '.', '.', 3], [4, '.', '.', 8, '.', 3, '.', '.', 1], [7, '.', '.', '.', 2, '.', '.', '.', 6], ['.', 6, '.', '.', '.', '.', 2, 8, '.'], ['.', '.', '.', 4, 1, 9, '.', '.', 5], ['.', '.', '.', '.', 8, '.', '.', 7, 9]]"
+      },
+      {
+        "id": 81,
+        "query": "Could you provide me with the details of the top 5 hospitals in Douala, Cameroon, and the top 5 banks in Dar es Salaam, Tanzania? Also, could you validate the address with postcode 1075VB and house number 20 in Amsterdam, Netherlands?",
+        "answers": "[{\"name\": \"facilities_lookup\", \"arguments\": {\"type\": \"hospital\", \"region\": \"Littoral\", \"city\": \"douala\", \"limit\": 5}}, {\"name\": \"facilities_lookup\", \"arguments\": {\"type\": \"bank\", \"region\": \"Dar es Salaam\", \"city\": \"Dar es Salaam\", \"limit\": 5}}, {\"name\": \"api_v1_addresses\", \"arguments\": {\"postcode\": \"1075VB\", \"housenumber\": 20}}]",
+        "tools": "[{\"name\": \"facilities_lookup\", \"description\": \"Fetch a list of facilities in Cameroon based on provided query parameters.\", \"parameters\": {\"type\": {\"description\": \"The type of facility to search for (e.g., hospital, bank, college). Refer to the OpenStreetMap Map features for more options.\", \"type\": \"str\", \"default\": \"hospital\"}, \"region\": {\"description\": \"The region where the facility is located.\", \"type\": \"str\", \"default\": \"littoral\"}, \"city\": {\"description\": \"The city where the facility is located. Default is 'douala'.\", \"type\": \"str, optional\", \"default\": \"douala\"}, \"limit\": {\"description\": \"The maximum number of facilities to return. Default is 10.\", \"type\": \"int, optional\", \"default\": \"10\"}}}, {\"name\": \"api_v1_addresses\", \"description\": \"Fetches address information using the provided postcode and house number from the RapidAPI Address Validation API.\", \"parameters\": {\"postcode\": {\"description\": \"The postcode of the address.\", \"type\": \"str\", \"default\": \"3021GS\"}, \"housenumber\": {\"description\": \"The house number of the address.\", \"type\": \"int\", \"default\": \"288\"}, \"housenumbersuffix\": {\"description\": \"The suffix of the house number. Defaults to 'B'.\", \"type\": \"str, optional\", \"default\": \"B\"}}}, {\"name\": \"facilities_lookup\", \"description\": \"Fetches a list of facilities in Tanzania based on provided query parameters such as facility type, region, limit, and city.\", \"parameters\": {\"type\": {\"description\": \"The type of facility to search for (e.g., hospital, bank, college). Default is 'hospital'. For more options, refer to the OpenStreetMap Map Features.\", \"type\": \"str\", \"default\": \"hospital\"}, \"region\": {\"description\": \"The region where the facility is located.\", \"type\": \"str\", \"default\": \"Coastal Zone\"}, \"limit\": {\"description\": \"The number of facilities to query. Default is '10'.\", \"type\": \"str, optional\", \"default\": \"10\"}, \"city\": {\"description\": \"The city where the facility is located. Default is 'Dar es Salaam'.\", \"type\": \"str, optional\", \"default\": \"Dar es Salaam\"}}}, {\"name\": \"get_geocoding\", \"description\": \"Fetch complete, readable place information in the preferred language based on provided latitude and longitude.\", \"parameters\": {\"version\": {\"description\": \"Version of the geocoding API to use.\", \"type\": \"str\", \"default\": \"v1\"}, \"lat\": {\"description\": \"Latitude in decimal degrees (WGS84).\", \"type\": \"int\", \"default\": \"37.422213\"}, \"lng\": {\"description\": \"Longitude in decimal degrees (WGS84).\", \"type\": \"int\", \"default\": \"-122.084058\"}, \"lang\": {\"description\": \"Preferred language of the content. Defaults to 'en'.\", \"type\": \"str, optional\", \"default\": \"en\"}}}]",
+        "reason": "type_mismatch: facilities_lookup.limit is 'str, optional', got 5"
+      },
+      {
+        "id": 130,
+        "query": "Generate a QR code for the URL 'https://www.example.com' with a size of 7, and analyze the password 'Secure123' with a penalty of 0.3 and output in JSON format.",
+        "answers": "[{\"name\": \"qr_code_image\", \"arguments\": {\"size\": 7, \"url\": \"https://www.example.com\"}}, {\"name\": \"ec\", \"arguments\": {\"password\": \"Secure123\", \"penalty\": 0.3, \"outputformat\": \"json\"}}]",
+        "tools": "[{\"name\": \"qr_code_image\", \"description\": \"Generates a QR Code image of a specified size for a given URL.\", \"parameters\": {\"size\": {\"description\": \"The size of the QR code image. Default is 5.\", \"type\": \"int, optional\", \"default\": \"5\"}, \"url\": {\"description\": \"The URL to be encoded in the QR code. Default is 'www.google.com'.\", \"type\": \"str, optional\", \"default\": \"www.google.com\"}}}, {\"name\": \"qr_code_image_generator\", \"description\": \"Generates a QR code image from a given URL using the QR Code Generator API.\", \"parameters\": {\"url\": {\"description\": \"The URL for which the QR code is to be generated.\", \"type\": \"str\", \"default\": \"https://rapidapi.com\"}}}, {\"name\": \"scrape_links\", \"description\": \"Scrapes a specified number of links from the provided URL using the Scrapey Link Scraper API.\", \"parameters\": {\"url\": {\"description\": \"The target URL from which to scrape links.\", \"type\": \"str\", \"default\": \"amazon.com\"}, \"maxlinks\": {\"description\": \"The maximum number of links to scrape. Defaults to 10.\", \"type\": \"int, optional\", \"default\": \"10\"}, \"includequery\": {\"description\": \"Whether to include query parameters in the links. Defaults to None.\", \"type\": \"bool, optional\", \"default\": \"true\"}}}, {\"name\": \"ec\", \"description\": \"Analyzes a given password based on a variety of parameters and returns the analysis.\", \"parameters\": {\"password\": {\"description\": \"The password to be analyzed. It must be between 4 and 128 characters long.\", \"type\": \"str\", \"default\": \"\"}, \"penalty\": {\"description\": \"The penalty applied to each character that is part of a word, number sequence, alphabet sequence, etc. The penalty is a float number in the range [0, 1], with a default value of 0.25.\", \"type\": \"int, optional\", \"default\": \"\"}, \"outputformat\": {\"description\": \"The format of the returned analysis. Allowed values are 'json', 'xml', and 'yaml'. The default value is 'xml'.\", \"type\": \"str, optional\", \"default\": \"\"}, \"reqid\": {\"description\": \"An identifier for this request. This string must match the regular expression `^(?i)[a-z0-9]{8,16}$`. If not provided, a randomly generated identifier will be assigned.\", \"type\": \"str, optional\", \"default\": \"\"}}}]",
+        "reason": "type_mismatch: ec.penalty is 'int, optional', got 0.3"
+      }
+    ],
+    "unsupported_type": []
+  }
+}
