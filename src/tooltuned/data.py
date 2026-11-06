@@ -63,6 +63,20 @@ def load_raw_dataset() -> Dataset:
     return load_dataset(DATASET_NAME, split="train", token=token)
 
 
+def _hub_repo_id(api: HfApi) -> str:
+    """Return this project's dataset repo under the token's account."""
+    return f"{api.whoami()['name']}/{HUB_DATASET_NAME}"
+
+
+def load_train_split(config: str = "verified") -> Dataset:
+    """Load a train split from the private Hub dataset, which needs HF_TOKEN."""
+    token = os.environ.get("HF_TOKEN")
+    if not token:
+        raise RuntimeError("Set the HF_TOKEN environment variable to load the dataset.")
+    repo_id = _hub_repo_id(HfApi(token=token))
+    return load_dataset(repo_id, config, split="train", token=token)
+
+
 def row_to_messages(row: Row) -> list[Message]:
     """Turn one row into a user message and an assistant tool-call or text message."""
     user_message = {"role": "user", "content": row["query"]}
@@ -318,7 +332,7 @@ def _to_dataset_dict(train: list[Row], validation: list[Row]) -> DatasetDict:
 def push_splits_to_hub(splits: dict[str, list[Row]], token: str) -> str:
     """Push both configs to a private dataset under the token's account."""
     api = HfApi(token=token)
-    repo_id = f"{api.whoami()['name']}/{HUB_DATASET_NAME}"
+    repo_id = _hub_repo_id(api)
     api.create_repo(repo_id, repo_type="dataset", private=True, exist_ok=True)
     if not api.repo_info(repo_id, repo_type="dataset").private:
         raise RuntimeError(f"{repo_id} already exists and is public, so nothing was pushed.")
