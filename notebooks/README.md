@@ -48,3 +48,19 @@ Takes roughly 20 to 40 minutes:
 ```
 
 Then download `results/baseline/` from the Output panel and put it in your repo's `results/` folder.
+
+## Training
+
+Run a quick test first. It trains for 20 updates on 200 rows and never pushes to the Hub:
+
+```text
+!python scripts/train.py --max-steps 20 --train-limit 200
+```
+
+Check that it finishes, the loss is a real number, and the 5 generated answers print. Then start the full run, which pushes the adapter to a private repo when it finishes:
+
+```text
+!python scripts/train.py
+```
+
+Add `--no-push` to keep the adapter on Kaggle only. Logging to Weights & Biases turns on when `WANDB_API_KEY` is set, which Cell 2 does.

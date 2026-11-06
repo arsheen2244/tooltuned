@@ -68,13 +68,18 @@ def _hub_repo_id(api: HfApi) -> str:
     return f"{api.whoami()['name']}/{HUB_DATASET_NAME}"
 
 
-def load_train_split(config: str = "verified") -> Dataset:
-    """Load a train split from the private Hub dataset, which needs HF_TOKEN."""
+def load_hub_split(config: str, split: str) -> Dataset:
+    """Load a split from the private Hub dataset, which needs HF_TOKEN."""
     token = os.environ.get("HF_TOKEN")
     if not token:
         raise RuntimeError("Set the HF_TOKEN environment variable to load the dataset.")
     repo_id = _hub_repo_id(HfApi(token=token))
-    return load_dataset(repo_id, config, split="train", token=token)
+    return load_dataset(repo_id, config, split=split, token=token)
+
+
+def load_train_split(config: str = "verified") -> Dataset:
+    """Load a train split from the private Hub dataset."""
+    return load_hub_split(config, "train")
 
 
 def row_to_messages(row: Row) -> list[Message]:
