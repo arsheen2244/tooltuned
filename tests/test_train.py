@@ -23,7 +23,7 @@ from tooltuned.train import (
     force_adapter_float32,
     is_quick_run,
     load_config,
-    push_adapter,
+    push_private,
     train_on_rows,
     wandb_report_target,
 )
@@ -261,25 +261,25 @@ class FakeApi:
         return type("Info", (), {"private": self.is_private})
 
 
-def test_push_adapter_uses_a_private_repo_under_the_account(
+def test_push_private_uses_a_private_repo_under_the_account(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     FakeApi.is_private = True
     FakeApi.created = []
     monkeypatch.setattr(train, "HfApi", FakeApi)
     model, tokenizer = FakeUploader(), FakeUploader()
-    assert push_adapter(model, tokenizer, "name", "token") == "someone/name"
+    assert push_private(model, tokenizer, "name", "token") == "someone/name"
     assert FakeApi.created[0]["private"] is True
     assert model.pushes == [("someone/name", {"private": True, "token": "token"})]
     assert len(tokenizer.pushes) == 1
 
 
-def test_push_adapter_refuses_an_existing_public_repo(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_push_private_refuses_an_existing_public_repo(monkeypatch: pytest.MonkeyPatch) -> None:
     FakeApi.is_private = False
     monkeypatch.setattr(train, "HfApi", FakeApi)
     model = FakeUploader()
     with pytest.raises(RuntimeError, match="public"):
-        push_adapter(model, FakeUploader(), "name", "token")
+        push_private(model, FakeUploader(), "name", "token")
     assert model.pushes == []
 
 

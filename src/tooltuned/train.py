@@ -252,10 +252,10 @@ def print_generated_examples(
         print(f"GENERATED:\n{generate_answer(model, tokenizer, row, max_new_tokens)}")
 
 
-def push_adapter(
+def push_private(
     model: PreTrainedModel, tokenizer: PreTrainedTokenizerBase, repo_name: str, token: str
 ) -> str:
-    """Push the adapter and tokenizer to a private repo under the token's account."""
+    """Push a model (or adapter) and tokenizer to a private repo under the token's account."""
     api = HfApi(token=token)
     repo_id = f"{api.whoami()['name']}/{repo_name}"
     api.create_repo(repo_id, private=True, exist_ok=True)
@@ -309,7 +309,7 @@ def run_training(
     if is_quick_run(max_steps, train_limit) or not push:
         print(f"\nNot pushing to the Hub. The adapter is in {config.output_dir}")
         return
-    repo_id = push_adapter(
+    repo_id = push_private(
         trainer.model, tokenizer, config.hub_model_name, os.environ["HF_TOKEN"]
     )
     print(f"\nPushed the adapter to {repo_id}")

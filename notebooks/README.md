@@ -64,3 +64,14 @@ Check that it finishes, the loss is a real number, and the 5 generated answers p
 ```
 
 Add `--no-push` to keep the adapter on Kaggle only. Logging to Weights & Biases turns on when `WANDB_API_KEY` is set, which Cell 2 does.
+
+## Merge and check
+
+These need no GPU, so they also run on a laptop with `HF_TOKEN` set. The first merges the adapter into the base model and pushes the result to a private repo, `<your-username>/tooltuned-qwen2.5-1.5b`. The second loads that model and checks it makes one correct tool call:
+
+```text
+!python scripts/merge_and_push.py
+!python scripts/sanity_check.py
+```
+
+Add `--save-dir /kaggle/working/merged` to the first command to also keep a local copy for BFCL.
