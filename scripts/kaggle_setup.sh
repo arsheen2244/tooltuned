@@ -18,6 +18,9 @@ fi
 # Keep Kaggle's own torch: it matches the GPU driver and the preinstalled torchvision.
 grep -v '^torch==' "$REPO_DIR/requirements.txt" > /tmp/kaggle_requirements.txt
 pip install --quiet -r /tmp/kaggle_requirements.txt
+# Kaggle's preinstalled torchao is older than PEFT supports, and PEFT stops with an error
+# when it finds it while loading an adapter onto a full-precision model. We don't use it.
+pip uninstall --quiet -y torchao
 
 HF_TOKEN="$(read_secret HF_TOKEN)"
 WANDB_API_KEY="$(read_secret WANDB_API_KEY)"
