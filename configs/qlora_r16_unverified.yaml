@@ -1,0 +1,42 @@
+# Ablation: identical to qlora_r16.yaml except it trains on the unverified data and uses its own
+# output folder and Hub repos. Only the 4 lines marked ABLATION differ.
+
+# Model
+base_model: Qwen/Qwen2.5-1.5B-Instruct  # The model being fine-tuned.
+load_in_4bit: true                      # Store base weights in 4 bits to save GPU memory.
+bnb_4bit_quant_type: nf4                # NF4 suits how neural-network weights are distributed.
+
+# LoRA adapter
+lora_r: 16                              # Adapter size: larger learns more but uses more memory.
+lora_alpha: 32                          # Adapter strength; alpha / r = 2 scales its effect.
+lora_dropout: 0.05                      # Randomly hides 5% of adapter signals to reduce overfitting.
+lora_target_modules: all-linear         # Adapts every linear layer except the output layer.
+
+# Optimisation
+learning_rate: 2.0e-4                   # How big each weight update is.
+lr_scheduler_type: cosine               # Lowers the learning rate smoothly towards zero.
+warmup_ratio: 0.03                      # Ramps the learning rate up over the first 3% of updates.
+num_train_epochs: 2                     # Passes over the training data.
+per_device_train_batch_size: 4          # Rows on the GPU at once, which limits peak memory.
+per_device_eval_batch_size: 4           # Same limit during evaluation.
+gradient_accumulation_steps: 4          # Updates every 4 batches, acting like a batch of 16.
+
+# Precision and memory
+fp16: true                              # 16-bit float maths, because the T4 has no bf16 support.
+gradient_checkpointing: true            # Recomputes values to save memory, at some cost in speed.
+max_seq_length: 1072                    # From scripts/token_stats.py; longer rows are dropped.
+
+# Tracking and saving
+eval_steps: 200                         # Measures validation loss every 200 updates.
+logging_steps: 10                       # Logs training loss every 10 updates.
+save_steps: 200                         # Saves a checkpoint every 200 updates.
+save_total_limit: 2                     # Keeps only the newest 2 checkpoints to save disk.
+seed: 42                                # Makes shuffling and adapter initialisation repeatable.
+
+# Data and outputs
+dataset_config: unverified              # ABLATION: data that skipped the verify.py checks.
+output_dir: outputs/qlora_r16_unverified  # ABLATION: separate local folder (git-ignored).
+hub_model_name: tooltuned-qwen2.5-1.5b-lora-unverified  # ABLATION: separate adapter repo.
+merged_model_name: tooltuned-qwen2.5-1.5b-unverified  # ABLATION: separate merged model repo.
+num_generation_examples: 5              # Validation rows to generate answers for at the end.
+max_new_tokens: 256                     # Longest answer to generate for those rows.

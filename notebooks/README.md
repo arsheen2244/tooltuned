@@ -75,3 +75,23 @@ These need no GPU, so they also run on a laptop with `HF_TOKEN` set. The first m
 ```
 
 Add `--save-dir /kaggle/working/merged` to the first command to also keep a local copy for BFCL.
+
+## Day 4: scoring and the ablation
+
+`run_bfcl.sh` takes a Hub repo id as its second argument and downloads the model first. The model name stays `Qwen/Qwen2.5-1.5B-Instruct-FC` for every run, so all models get the same BFCL handler, prompt format and output parser. Each run also saves BFCL's per-question score files to `results/<output>/score/`.
+
+Notebook A, run one cell at a time (about 1 hour):
+
+```text
+!bash scripts/run_bfcl.sh "Qwen/Qwen2.5-1.5B-Instruct-FC" "" baseline
+!bash scripts/run_bfcl.sh "Qwen/Qwen2.5-1.5B-Instruct-FC" asheeee24/tooltuned-qwen2.5-1.5b tooltuned_verified
+!cd results && zip -qr /kaggle/working/day4_a.zip baseline tooltuned_verified
+```
+
+Notebook B, the ablation, with Save Version → Save & Run All (about 5 hours). The `&&` in the second cell stops before BFCL if the sanity check fails:
+
+```text
+!python scripts/train.py --config configs/qlora_r16_unverified.yaml
+!python scripts/merge_and_push.py --config configs/qlora_r16_unverified.yaml && python scripts/sanity_check.py --config configs/qlora_r16_unverified.yaml && bash scripts/run_bfcl.sh "Qwen/Qwen2.5-1.5B-Instruct-FC" asheeee24/tooltuned-qwen2.5-1.5b-unverified tooltuned_unverified
+!cd results && zip -qr /kaggle/working/day4_b.zip tooltuned_unverified
+```

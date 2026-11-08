@@ -36,5 +36,6 @@ seed: 42                                # Makes shuffling and adapter initialisa
 dataset_config: verified                # Which config of the Hub dataset to train on.
 output_dir: outputs/qlora_r16           # Local folder for checkpoints and the adapter (git-ignored).
 hub_model_name: tooltuned-qwen2.5-1.5b-lora  # Adapter repo name under your account.
+merged_model_name: tooltuned-qwen2.5-1.5b    # Merged model repo name, made by scripts/merge_and_push.py.
 num_generation_examples: 5              # Validation rows to generate answers for at the end.
 max_new_tokens: 256                     # Longest answer to generate for those rows.

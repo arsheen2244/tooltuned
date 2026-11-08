@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Scores a model on BFCL. Usage:
-#   bash scripts/run_bfcl.sh <model name> <local model path or ""> <output folder name>
+#   bash scripts/run_bfcl.sh <model name> <local folder, Hub repo id, or ""> <output folder name>
+# The middle argument picks the weights: "" for the base model, a local folder, or a Hub repo
+# such as asheeee24/tooltuned-qwen2.5-1.5b, which is downloaded first. The model name stays
+# Qwen/Qwen2.5-1.5B-Instruct-FC so every run uses the same BFCL handler and prompt format.
 set -euo pipefail
 
 BFCL_VERSION="2026.3.23"
@@ -13,7 +16,7 @@ VENV_DIR="/tmp/bfcl-venv"
 export BFCL_PROJECT_ROOT="/kaggle/working/bfcl"
 
 usage() {
-  echo 'Usage: bash scripts/run_bfcl.sh <model name> <local model path or ""> <output folder name>' >&2
+  echo 'Usage: bash scripts/run_bfcl.sh <model name> <local folder, Hub repo id, or ""> <output folder name>' >&2
   exit 2
 }
 
@@ -28,8 +31,15 @@ if [[ ! "$OUTPUT" =~ ^[A-Za-z0-9._-]+$ ]]; then
   exit 2
 fi
 if [[ -n "$LOCAL_MODEL_PATH" && ! -d "$LOCAL_MODEL_PATH" ]]; then
-  echo "Local model path not found: $LOCAL_MODEL_PATH" >&2
-  exit 2
+  if [[ ! "$LOCAL_MODEL_PATH" =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]]; then
+    echo "Not a local folder or a Hub repo id: $LOCAL_MODEL_PATH" >&2
+    exit 2
+  fi
+  # Uses Kaggle's own Python, which has huggingface_hub and HF_TOKEN; the repo may be private.
+  DOWNLOAD_DIR="/kaggle/working/models/${LOCAL_MODEL_PATH#*/}"
+  echo "Downloading $LOCAL_MODEL_PATH to $DOWNLOAD_DIR ..."
+  python -c 'import os, sys; from huggingface_hub import snapshot_download; snapshot_download(sys.argv[1], local_dir=sys.argv[2], token=os.environ.get("HF_TOKEN"))'     "$LOCAL_MODEL_PATH" "$DOWNLOAD_DIR"
+  LOCAL_MODEL_PATH="$DOWNLOAD_DIR"
 fi
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -71,7 +81,9 @@ python "$REPO_DIR/scripts/bfcl_cli.py" evaluate \
   --result-dir "result/$OUTPUT" \
   --score-dir "score/$OUTPUT"
 
-mkdir -p "$REPO_DIR/results/$OUTPUT"
+mkdir -p "$REPO_DIR/results/$OUTPUT/score"
 cp "$BFCL_PROJECT_ROOT/score/$OUTPUT"/data_*.csv "$REPO_DIR/results/$OUTPUT/"
+# The per-category score files list every failed question with its error type and raw output.
+find "$BFCL_PROJECT_ROOT/score/$OUTPUT" -name 'BFCL_v4_*_score.json' -exec cp {} "$REPO_DIR/results/$OUTPUT/score/" \;
 
 python "$REPO_DIR/scripts/print_scores.py" "$REPO_DIR/results/$OUTPUT"

@@ -11,8 +11,6 @@ from transformers import AutoModelForCausalLM, PreTrainedModel
 
 from tooltuned.train import create_private_repo
 
-MERGED_MODEL_NAME = "tooltuned-qwen2.5-1.5b"
-
 # Copied unchanged from the base model, because fine-tuning doesn't change them and newer
 # transformers versions save them in a format BFCL's older transformers and vLLM misread.
 BASE_FILES = (

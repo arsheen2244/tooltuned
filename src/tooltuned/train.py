@@ -56,6 +56,7 @@ class TrainConfig:
     dataset_config: str
     output_dir: str
     hub_model_name: str
+    merged_model_name: str
     num_generation_examples: int
     max_new_tokens: int
 

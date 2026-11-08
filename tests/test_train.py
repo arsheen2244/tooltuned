@@ -96,8 +96,26 @@ def test_config_file_has_the_requested_values(config: TrainConfig) -> None:
         "eval_steps": 200,
         "seed": 42,
         "hub_model_name": "tooltuned-qwen2.5-1.5b-lora",
+        "merged_model_name": "tooltuned-qwen2.5-1.5b",
     }
     assert {name: getattr(config, name) for name in expected} == expected
+
+
+def test_ablation_config_differs_only_in_its_data_and_names(config: TrainConfig) -> None:
+    ablation = load_config(CONFIG_PATH.with_name("qlora_r16_unverified.yaml"))
+    differing = {
+        name: (getattr(config, name), getattr(ablation, name))
+        for name in config.__dataclass_fields__
+        if getattr(config, name) != getattr(ablation, name)
+    }
+    assert differing == {
+        "dataset_config": ("verified", "unverified"),
+        "output_dir": ("outputs/qlora_r16", "outputs/qlora_r16_unverified"),
+        "hub_model_name": (
+            "tooltuned-qwen2.5-1.5b-lora", "tooltuned-qwen2.5-1.5b-lora-unverified"
+        ),
+        "merged_model_name": ("tooltuned-qwen2.5-1.5b", "tooltuned-qwen2.5-1.5b-unverified"),
+    }
 
 
 def test_config_values_have_their_declared_number_types(config: TrainConfig) -> None:

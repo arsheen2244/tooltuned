@@ -2,6 +2,7 @@
 
 Needs no GPU (it runs on the CPU in a few minutes) and about 4 GB of free memory:
     python scripts/merge_and_push.py --save-dir /kaggle/working/merged
+    python scripts/merge_and_push.py --config configs/qlora_r16_unverified.yaml
 """
 
 import argparse
@@ -13,7 +14,6 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from tooltuned.merge import (  # noqa: E402
-    MERGED_MODEL_NAME,
     account_repo_id,
     merge_adapter,
     push_folder_private,
@@ -38,7 +38,7 @@ def main() -> None:
     model = merge_adapter(config.base_model, adapter, token)
     save_merged(model, config.base_model, arguments.save_dir, token)
     print(f"Saved the merged model to {arguments.save_dir}")
-    repo_id = push_folder_private(arguments.save_dir, MERGED_MODEL_NAME, token)
+    repo_id = push_folder_private(arguments.save_dir, config.merged_model_name, token)
     print(f"Pushed the merged model to {repo_id}")
 
 
