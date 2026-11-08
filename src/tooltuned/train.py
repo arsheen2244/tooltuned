@@ -252,15 +252,20 @@ def print_generated_examples(
         print(f"GENERATED:\n{generate_answer(model, tokenizer, row, max_new_tokens)}")
 
 
-def push_private(
-    model: PreTrainedModel, tokenizer: PreTrainedTokenizerBase, repo_name: str, token: str
-) -> str:
-    """Push a model (or adapter) and tokenizer to a private repo under the token's account."""
-    api = HfApi(token=token)
+def create_private_repo(api: HfApi, repo_name: str) -> str:
+    """Create (or reuse) a private repo under the account, refusing one that is public."""
     repo_id = f"{api.whoami()['name']}/{repo_name}"
     api.create_repo(repo_id, private=True, exist_ok=True)
     if not api.repo_info(repo_id).private:
         raise RuntimeError(f"{repo_id} already exists and is public, so nothing was pushed.")
+    return repo_id
+
+
+def push_private(
+    model: PreTrainedModel, tokenizer: PreTrainedTokenizerBase, repo_name: str, token: str
+) -> str:
+    """Push a model (or adapter) and tokenizer to a private repo under the token's account."""
+    repo_id = create_private_repo(HfApi(token=token), repo_name)
     model.push_to_hub(repo_id, private=True, token=token)
     tokenizer.push_to_hub(repo_id, private=True, token=token)
     return repo_id
