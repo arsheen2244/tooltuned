@@ -35,13 +35,16 @@ These are not official leaderboard results. BFCL has no built-in Qwen2.5 entry, 
 ## How it works
 
 ```mermaid
-flowchart LR
-    A[xLAM 60k<br/>function-calling rows] --> B[Verify against<br/>each row's tools]
-    B --> C[Add no-tool<br/>examples]
-    C --> D[Remove overlap<br/>with BFCL]
-    D --> E[QLoRA training<br/>on a T4]
-    E --> F[Merge adapter<br/>into base model]
-    F --> G[BFCL evaluation<br/>vs base model]
+flowchart TB
+    subgraph laptop [Laptop, CPU only]
+        direction LR
+        A[xLAM 60k rows] --> B[Verify calls] --> C[Add no-tool examples] --> D[Remove BFCL overlap]
+    end
+    subgraph kaggle [Kaggle T4 GPU]
+        direction LR
+        E[QLoRA training] --> F[Merge adapter] --> G[BFCL vs base model]
+    end
+    D --> E
 ```
 
 **1. Data** (CPU, on a laptop). The 60,000 rows of [`Salesforce/xlam-function-calling-60k`](https://huggingface.co/datasets/Salesforce/xlam-function-calling-60k) are checked against their own tool definitions: the function and its parameters exist, required parameters are present, and the values match the declared types. 58,485 rows pass. 6,498 no-tool examples pair a request with clearly unrelated tools and a reply that declines to call them. Rows too close to any of the 1,240 BFCL test questions are removed, using character 8-grams: 4,036 tool-call and 400 no-tool rows. The training set is 10,000 rows (10% no-tool), plus 500 for validation. The counts are in [`results/data_report.json`](results/data_report.json).
