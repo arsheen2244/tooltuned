@@ -1,0 +1,176 @@
+{
+  "model": "asheeee24/tooltuned-qwen2.5-1.5b",
+  "model_revision": "393510c12e73076ead63e0728b93d056edcaa168",
+  "dtype": "bfloat16",
+  "device": "CPU",
+  "decoding": "greedy, at most 256 new tokens",
+  "examples": [
+    {
+      "label": "One call",
+      "tools": [
+        {
+          "name": "get_weather",
+          "description": "Get the current weather for a city.",
+          "parameters": {
+            "city": {
+              "description": "City name.",
+              "type": "str"
+            }
+          }
+        }
+      ],
+      "query": "What's the weather like in Paris right now?",
+      "raw": "<tool_call>\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}\n</tool_call>",
+      "calls": [
+        {
+          "name": "get_weather",
+          "arguments": {
+            "city": "Paris"
+          }
+        }
+      ],
+      "summary": "1 tool call.",
+      "seconds": 14.4
+    },
+    {
+      "label": "Parallel calls",
+      "tools": [
+        {
+          "name": "get_weather",
+          "description": "Get the current weather for a city.",
+          "parameters": {
+            "city": {
+              "description": "City name.",
+              "type": "str"
+            }
+          }
+        }
+      ],
+      "query": "Is it raining in Tokyo or in Oslo?",
+      "raw": "<tool_call>\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Tokyo\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Oslo\"}}\n</tool_call>",
+      "calls": [
+        {
+          "name": "get_weather",
+          "arguments": {
+            "city": "Tokyo"
+          }
+        },
+        {
+          "name": "get_weather",
+          "arguments": {
+            "city": "Oslo"
+          }
+        }
+      ],
+      "summary": "2 tool calls.",
+      "seconds": 24.9
+    },
+    {
+      "label": "Picking the right tool",
+      "tools": [
+        {
+          "name": "get_weather",
+          "description": "Get the current weather for a city.",
+          "parameters": {
+            "city": {
+              "description": "City name.",
+              "type": "str"
+            }
+          }
+        },
+        {
+          "name": "convert_currency",
+          "description": "Convert an amount of money from one currency to another.",
+          "parameters": {
+            "amount": {
+              "description": "Amount to convert.",
+              "type": "float"
+            },
+            "from_currency": {
+              "description": "Currency code to convert from, e.g. USD.",
+              "type": "str"
+            },
+            "to_currency": {
+              "description": "Currency code to convert to, e.g. EUR.",
+              "type": "str"
+            }
+          }
+        }
+      ],
+      "query": "How much is 250 US dollars in euros?",
+      "raw": "<tool_call>\n{\"name\": \"convert_currency\", \"arguments\": {\"amount\": 250, \"from_currency\": \"USD\", \"to_currency\": \"EUR\"}}\n</tool_call>",
+      "calls": [
+        {
+          "name": "convert_currency",
+          "arguments": {
+            "amount": 250,
+            "from_currency": "USD",
+            "to_currency": "EUR"
+          }
+        }
+      ],
+      "summary": "1 tool call.",
+      "seconds": 28.1
+    },
+    {
+      "label": "No tool fits",
+      "tools": [
+        {
+          "name": "convert_currency",
+          "description": "Convert an amount of money from one currency to another.",
+          "parameters": {
+            "amount": {
+              "description": "Amount to convert.",
+              "type": "float"
+            },
+            "from_currency": {
+              "description": "Currency code to convert from, e.g. USD.",
+              "type": "str"
+            },
+            "to_currency": {
+              "description": "Currency code to convert to, e.g. EUR.",
+              "type": "str"
+            }
+          }
+        }
+      ],
+      "query": "Who wrote the novel Moby Dick?",
+      "raw": "I can't help with this using the available tools, because none of them fit the request.",
+      "calls": [],
+      "summary": "No tool call: the model answered in plain text.",
+      "seconds": 23.6
+    },
+    {
+      "label": "Known weakness: a near-miss tool",
+      "tools": [
+        {
+          "name": "plan_route",
+          "description": "Plan a driving route between two addresses.",
+          "parameters": {
+            "start": {
+              "description": "Starting address.",
+              "type": "str"
+            },
+            "end": {
+              "description": "Destination address.",
+              "type": "str"
+            }
+          }
+        }
+      ],
+      "query": "Where is the nearest pharmacy?",
+      "raw": "<tool_call>\n{\"name\": \"plan_route\", \"arguments\": {\"start\": \"\", \"end\": \"\"}}\n</tool_call>",
+      "calls": [
+        {
+          "name": "plan_route",
+          "arguments": {
+            "start": "",
+            "end": ""
+          }
+        }
+      ],
+      "summary": "1 tool call.",
+      "seconds": 24.3
+    }
+  ]
+}

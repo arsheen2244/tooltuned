@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ToolTuned demo</title>
+<meta name="description" content="Recorded answers from Qwen2.5-1.5B-Instruct fine-tuned with QLoRA for function calling.">
+<style>
+  :root {
+    --bg: #f7f7f5; --surface: #ffffff; --text: #1d1d1b; --muted: #5f5f5a;
+    --border: #e2e1dc; --accent: #3b5bdb; --accent-soft: #e8edfd;
+    --good: #2b8a3e; --good-soft: #e6f4ea; --warn: #b35c00; --warn-soft: #fff1e0;
+    --code-bg: #f1f0ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #151514; --surface: #1f1f1d; --text: #ecebe6; --muted: #a3a29b;
+      --border: #34332f; --accent: #8ea5ff; --accent-soft: #232a45;
+      --good: #69db7c; --good-soft: #1c3322; --warn: #ffb35c; --warn-soft: #3a2a17;
+      --code-bg: #191917;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 56px; }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 8px; }
+  h2 { font-size: 1.15rem; margin: 40px 0 12px; }
+  h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 6px; }
+  p { margin: 0 0 12px; }
+  a { color: var(--accent); }
+  code, pre { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 0.86rem; }
+  .lede { color: var(--muted); max-width: 70ch; }
+  .notice {
+    border: 1px solid var(--border); background: var(--surface); border-radius: 10px;
+    padding: 12px 16px; margin: 20px 0; font-size: 0.93rem; color: var(--muted);
+  }
+  .notice strong { color: var(--text); }
+  .scores { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; font-size: 0.93rem; }
+  .scores th, .scores td { padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--border); }
+  .scores th:first-child, .scores td:first-child { text-align: left; }
+  .scores tr:last-child td { border-bottom: 0; }
+  .scores thead th { color: var(--muted); font-weight: 600; }
+  .up { color: var(--good); font-weight: 600; }
+  .down { color: var(--warn); font-weight: 600; }
+  .table-wrap { overflow-x: auto; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .tab {
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 0.9rem; cursor: pointer;
+  }
+  .tab[aria-selected="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .panel { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .panel { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; min-width: 0; }
+  .card + .card { margin-top: 0; }
+  .stack > * + * { margin-top: 16px; }
+  pre { background: var(--code-bg); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  .query { font-size: 1.05rem; font-weight: 500; }
+  .badge { display: inline-block; border-radius: 6px; padding: 3px 10px; font-size: 0.88rem; font-weight: 600; }
+  .badge.call { background: var(--accent-soft); color: var(--accent); }
+  .badge.none { background: var(--good-soft); color: var(--good); }
+  .note { background: var(--warn-soft); color: var(--text); border-left: 3px solid var(--warn); border-radius: 6px; padding: 10px 12px; font-size: 0.92rem; }
+  .meta { color: var(--muted); font-size: 0.85rem; }
+  footer { margin-top: 48px; color: var(--muted); font-size: 0.88rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>ToolTuned: function calling with a 1.5B model</h1>
+  <p class="lede">
+    <a href="https://huggingface.co/asheeee24/tooltuned-qwen2.5-1.5b"><code>asheeee24/tooltuned-qwen2.5-1.5b</code></a>
+    is Qwen2.5-1.5B-Instruct fine-tuned with QLoRA to call tools. Given a request and a list of tools,
+    it answers with <code>&lt;tool_call&gt;</code> blocks, or in plain text when no tool fits.
+  </p>
+
+  <div class="notice" id="recording-notice">
+    <strong>These answers are recorded, not live.</strong> Loading the recording…
+  </div>
+
+  <h2>Examples</h2>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="panel" id="panel" role="tabpanel">
+    <div class="card stack">
+      <div><h3>Request</h3><p class="query" id="query"></p></div>
+      <div><h3>Tools given to the model</h3><pre id="tools"></pre></div>
+    </div>
+    <div class="card stack">
+      <div><h3>Result</h3><span class="badge" id="summary"></span> <span class="meta" id="seconds"></span></div>
+      <div id="note-wrap" hidden><div class="note" id="note"></div></div>
+      <div id="calls-wrap"><h3>Parsed tool calls</h3><pre id="calls"></pre></div>
+      <div><h3>Raw model output</h3><pre id="raw"></pre></div>
+    </div>
+  </div>
+
+  <h2>BFCL results</h2>
+  <p class="lede">1,240 questions from 5 categories of the Berkeley Function Calling Leaderboard, compared with the base model. Not official leaderboard results.</p>
+  <div class="table-wrap">
+    <table class="scores">
+      <thead><tr><th>Category</th><th>Questions</th><th>Base model</th><th>ToolTuned</th><th>Change</th></tr></thead>
+      <tbody>
+        <tr><td><code>simple_python</code></td><td>400</td><td>86.50%</td><td>87.50%</td><td class="up">+1.0</td></tr>
+        <tr><td><code>multiple</code></td><td>200</td><td>84.00%</td><td>87.00%</td><td class="up">+3.0</td></tr>
+        <tr><td><code>parallel</code></td><td>200</td><td>74.50%</td><td>78.00%</td><td class="up">+3.5</td></tr>
+        <tr><td><code>parallel_multiple</code></td><td>200</td><td>72.50%</td><td>75.50%</td><td class="up">+3.0</td></tr>
+        <tr><td><code>irrelevance</code></td><td>240</td><td>72.50%</td><td>57.92%</td><td class="down">−14.6</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="meta" style="margin-top:8px">Paired McNemar tests: the gain on the 4 tool-calling categories is unlikely to be chance (p = 0.027), and so is the drop on irrelevance (p &lt; 0.001).</p>
+
+  <h2>Run it yourself</h2>
+  <p>The live version of this demo is a Gradio app in the repo's <code>space/</code> folder. On a CPU it needs about 6 GB of free memory (3 GB with <code>DEMO_DTYPE=bfloat16</code>):</p>
+  <pre>git clone https://github.com/arsheen2244/tooltuned
+cd tooltuned/space
+pip install -r requirements.txt
+python app.py</pre>
+
+  <footer>
+    Code, data pipeline and full results: <a href="https://github.com/arsheen2244/tooltuned">github.com/arsheen2244/tooltuned</a>
+    · Model card: <a href="https://huggingface.co/asheeee24/tooltuned-qwen2.5-1.5b">huggingface.co/asheeee24/tooltuned-qwen2.5-1.5b</a>
+  </footer>
+</main>
+
+<script>
+  const NOTES = {
+    "No tool fits": "None of the tools can answer this, so the model correctly replies in plain text.",
+    "Known weakness: a near-miss tool":
+      "The route planner is on a related topic but can't find a pharmacy, so the right answer is plain text. " +
+      "The model calls it anyway, with empty arguments. This is why it scores 14.6 points below the base model on BFCL irrelevance.",
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  function show(example, button) {
+    document.querySelectorAll(".tab").forEach((tab) => tab.setAttribute("aria-selected", String(tab === button)));
+    $("query").textContent = example.query;
+    $("tools").textContent = JSON.stringify(example.tools, null, 2);
+    $("summary").textContent = example.summary;
+    $("summary").className = "badge " + (example.calls.length ? "call" : "none");
+    $("seconds").textContent = `answered in ${example.seconds} s on a laptop CPU`;
+    $("calls-wrap").hidden = !example.calls.length;
+    $("calls").textContent = JSON.stringify(example.calls, null, 2);
+    $("raw").textContent = example.raw;
+    const note = NOTES[example.label];
+    $("note-wrap").hidden = !note;
+    $("note").textContent = note || "";
+  }
+
+  fetch("examples.json")
+    .then((response) => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    })
+    .then((recording) => {
+      $("recording-notice").innerHTML =
+        "<strong>These answers are recorded, not live.</strong> Hugging Face needs a paid plan to host a model server, " +
+        "so this page shows answers the model actually gave, saved by <code>space/record.py</code>. ";
+      const detail = document.createElement("span");
+      detail.textContent =
+        `Recorded with ${recording.model} (revision ${recording.model_revision.slice(0, 7)}), ` +
+        `${recording.dtype} on a ${recording.device}, ${recording.decoding}.`;
+      $("recording-notice").appendChild(detail);
+      recording.examples.forEach((example, index) => {
+        const button = document.createElement("button");
+        button.className = "tab";
+        button.type = "button";
+        button.setAttribute("role", "tab");
+        button.textContent = example.label;
+        button.addEventListener("click", () => show(example, button));
+        $("tabs").appendChild(button);
+        if (index === 0) show(example, button);
+      });
+    })
+    .catch((error) => {
+      $("recording-notice").textContent = `Couldn't load the recorded examples (${error.message}).`;
+      $("panel").hidden = true;
+    });
+</script>
+</body>
+</html>
