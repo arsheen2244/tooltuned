@@ -123,6 +123,7 @@ def test_load_train_split_reads_config_from_the_accounts_repo(
     ]
 
 
+@pytest.mark.internet
 def test_token_length_with_real_tokenizer() -> None:
     try:
         tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)

@@ -1,0 +1,32 @@
+# Runs the test suite on every push and pull request, on a CPU-only machine.
+# Tests marked `internet` or `gpu` are skipped here (see tests/conftest.py).
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      HF_HUB_OFFLINE: "1"  # Any unmarked test that tries to download fails instead of hanging.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install CPU-only torch, then the other requirements
+        run: |
+          python -m pip install --upgrade pip
+          TORCH=$(grep '^torch==' requirements.txt)
+          pip install "$TORCH" --index-url https://download.pytorch.org/whl/cpu
+          grep -v '^torch==' requirements.txt > /tmp/requirements-no-torch.txt
+          pip install -r /tmp/requirements-no-torch.txt
+
+      - name: Run tests
+        run: python -m pytest -v -rs

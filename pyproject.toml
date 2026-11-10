@@ -6,3 +6,7 @@ requires-python = ">=3.11,<3.12"
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+markers = [
+    "internet: downloads from the Hugging Face Hub; skipped in CI",
+    "gpu: needs a CUDA GPU; skipped in CI",
+]

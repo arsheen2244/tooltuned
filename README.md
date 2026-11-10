@@ -1,5 +1,7 @@
 # ToolTuned
 
+[![Tests](https://github.com/arsheen2244/tooltuned/actions/workflows/tests.yml/badge.svg)](https://github.com/arsheen2244/tooltuned/actions/workflows/tests.yml)
+
 Fine-tuning `Qwen/Qwen2.5-1.5B-Instruct` with QLoRA to call functions more accurately, measured against the base model on the Berkeley Function Calling Leaderboard (BFCL).
 
 ## Setup
