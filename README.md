@@ -22,28 +22,26 @@ python -m pytest
 
 ## Results
 
-BFCL scores before and after fine-tuning, both on a T4 GPU with fp16. The fine-tuned model is a QLoRA adapter (r=16, 2 epochs on 10,000 examples) merged into the base model.
+BFCL accuracy on 5 categories (1,240 questions), on a T4 GPU with fp16. **Verified** is the QLoRA model (r=16, 2 epochs, 10,000 rows) trained on data that passed `verify.py`; **Unverified** is the same recipe on data without those checks, as an ablation.
 
-| Category | Questions | Base model | Fine-tuned | Change |
+| Category | Questions | Base | Verified | Unverified |
 | --- | --- | --- | --- | --- |
-| `simple_python` | 400 | 86.50% | 87.50% | +1.0 |
-| `multiple` | 200 | 84.00% | 87.00% | +3.0 |
-| `parallel` | 200 | 74.50% | 78.50% | +4.0 |
-| `parallel_multiple` | 200 | 72.50% | 75.50% | +3.0 |
-| `irrelevance` | 240 | 72.08% | 57.50% | −14.6 |
+| `simple_python` | 400 | 86.50% | 87.50% | 89.25% |
+| `multiple` | 200 | 84.00% | 87.00% | 88.50% |
+| `parallel` | 200 | 74.50% | 78.00% | 81.00% |
+| `parallel_multiple` | 200 | 72.50% | 75.50% | 77.50% |
+| `irrelevance` | 240 | 72.50% | 57.92% | 55.00% |
 
-Raw scores: [`results/baseline/`](results/baseline/) and [`results/qlora_r16/`](results/qlora_r16/).
+- **Fine-tuning improved tool calling:** both models gained 1–6.5 points on all four tool-calling categories. A paired test on the same questions says the gains are real.
+- **It hurt knowing when *not* to call a tool:** `irrelevance` fell by 15–18 points. The training set's no-tool examples were clearly unrelated, while BFCL's are near misses on the same topic. In a labelled sample of failures, most irrelevance errors were near-miss calls.
+- **Verification did not help:** the unverified model did better on tool calling (36 vs 16 questions only one model got right, p = 0.008). With one training run each, training luck can't be ruled out.
+
+Full table, paired tests, failure types and labelled failures: [`results/RESULTS.md`](results/RESULTS.md), built by `python scripts/compare.py`. Raw scores are in [`results/`](results/).
+
+These come from running BFCL with a custom model registration, because BFCL has no built-in Qwen2.5 entry, so they aren't official leaderboard results. BFCL counts categories that weren't run as 0, so the overall accuracy columns in the CSV files understate every model and shouldn't be quoted.
 
 ### Training
 
-![Training and validation loss](results/qlora_r16/loss_curves.svg)
+![Training and validation loss](results/tooltuned_verified/loss_curves.svg)
 
-Training took 3 h 48 min on one T4. Validation loss on 487 held-out rows fell from 0.0240 at step 200 to 0.0191 and stayed flat over the last 400 updates, so the model did not overfit. The small rise at step 400 came while the learning rate was near its peak. The numbers come from the training log, saved in [`loss_history.json`](results/qlora_r16/loss_history.json); `python scripts/plot_loss.py results/qlora_r16` redraws the chart.
-
-**What this shows:**
-
-- **Tool calling improved slightly.** All four categories that need a tool call went up, most in the two parallel categories, where the model must make several calls. Each gain is small (4 to 8 more correct answers out of 200 or 400), close to run-to-run noise on its own, but all four moved the same way.
-- **Knowing when not to call a tool got much worse.** In `irrelevance`, the right answer is no tool call, and the fine-tuned model wrongly called a tool on 35 more of the 240 questions.
-- **Likely cause:** the training set's 1,000 no-tool examples pair a request with clearly unrelated tools, while BFCL's irrelevance questions are near misses: a tool on the same topic that can't actually answer. The model learned to call any tool that looks related.
-
-These come from running BFCL with a custom model registration, because BFCL has no built-in Qwen2.5 entry, so they aren't official leaderboard results. The runs cover these five categories only. BFCL counts categories that weren't run as 0, so the overall accuracy columns in the CSV files understate both models and shouldn't be quoted.
+Training the verified model took 3 h 48 min on one T4. Validation loss on 487 held-out rows fell from 0.0240 at step 200 to 0.0191 and stayed flat over the last 400 updates, so the model did not overfit. The small rise at step 400 came while the learning rate was near its peak. The numbers come from the training log, saved in [`loss_history.json`](results/tooltuned_verified/loss_history.json); `python scripts/plot_loss.py results/tooltuned_verified` redraws the chart.

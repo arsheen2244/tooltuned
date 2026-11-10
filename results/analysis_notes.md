@@ -1,0 +1,11 @@
+**Did verification help?** No. On the same 1,000 tool-calling questions, the unverified model got 36 right that the verified model missed, against 16 the other way (p = 0.008), and the irrelevance difference (12 vs 5, p = 0.14) could be chance. One caveat: each model was trained once, so training luck is not ruled out (see below).
+
+**What fine-tuning did.** Both fine-tuned models call tools better than the base model on all four tool-calling categories (+1.0 to +6.5 points, real in the paired test). Both got much worse at `irrelevance`, where the right answer is not to call a tool (−14.6 and −17.5 points, also real). The failure counts show the trade: "didn't call a tool when it should" went from 6 to 0, while "called a tool when it shouldn't" went from 66 to 101 and 108.
+
+**Why irrelevance got worse.** The 1,000 no-tool training examples pair a request with clearly unrelated tools. BFCL's irrelevance questions are near misses: a tool on the same topic that can't actually answer, such as a route planner for "where is the nearest pharmacy". In the labelled sample, 7 of 9 irrelevance failures are near-miss calls like this. The other 2 look like questionable BFCL answers, where the given tool does seem to answer the question. The likely fix is near-miss no-tool examples in the training data.
+
+**Why verification may not have helped.** These are hypotheses, not tested:
+1. *Training luck.* The two training sets share all but 198 of 10,000 rows (2%). A 2-point gain from 2% of the data is surprising. Different data also changes the order of training batches, which by itself can move scores. The p-value covers which questions were asked, not this. Training each model again with a second seed (about 9 GPU hours for both) would separate the two.
+2. *The verifier may reject useful rows.* It rejects rows whose argument types don't match the declared types, or that miss required parameters. Some of those may still teach the call shape BFCL rewards. The unverified model has fewer "wrong number of calls" failures (19 vs 30), which would fit this. Comparing the 198 rows that differ would test it.
+
+**Run-to-run noise.** Re-running BFCL on the same model changed at most 1 question per category (baseline irrelevance 72.08% → 72.50%; verified parallel 78.50% → 78.00%), so evaluation noise is small next to these differences.

@@ -29,15 +29,19 @@ def entry(category: str = "simple_python", raw: str = CALL, **fields: Any) -> di
                error_type="simple_function_checker:wrong_count"), ev.BAD_FORMAT),
         (entry(error_type="simple_function_checker:wrong_func_name"), ev.WRONG_FUNCTION),
         (entry(category="parallel", error_type="parallel_function_checker_no_order:cannot_find_match",
-               error={"0": {"sub_error_type": "simple_function_checker:wrong_func_name"}}),
+               error=["No match.", {"Model Result Index 0": {"sub_error_type": "simple_function_checker:wrong_func_name"}}]),
          ev.WRONG_FUNCTION),
+        (entry(category="parallel", error_type="parallel_function_checker_no_order:cannot_find_match",
+               error=["No match.", {"Model Result Index 0": {"sub_error_type": "simple_function_checker:wrong_func_name"}},
+                      {"Model Result Index 1": {"sub_error_type": "value_error:others"}}]),
+         ev.WRONG_ARGUMENTS),
         (entry(category="parallel", error_type="parallel_function_checker_no_order:wrong_count"),
          ev.WRONG_COUNT),
         (entry(error_type="value_error:string"), ev.WRONG_ARGUMENTS),
         (entry(error_type="type_error:simple"), ev.WRONG_ARGUMENTS),
         (entry(error_type="simple_function_checker:missing_required"), ev.WRONG_ARGUMENTS),
         (entry(category="parallel", error_type="parallel_function_checker_no_order:cannot_find_match",
-               error={"0": {"sub_error_type": "value_error:others"}}), ev.WRONG_ARGUMENTS),
+               error=["No match.", {"Model Result Index 0": {"sub_error_type": "value_error:others"}}]), ev.WRONG_ARGUMENTS),
         (entry(error_type="dict_checker:unclear"), ev.OTHER),
     ],
 )
@@ -104,6 +108,16 @@ def test_failure_table_has_a_row_per_type_and_a_total() -> None:
     assert f"| **total** | {len(ev.FAILURE_TYPES)} |" in table
 
 
-@pytest.mark.parametrize(("p_value", "phrase"), [(0.01, "unlikely to be chance"), (0.5, "not shown to differ")])
-def test_paired_summary_states_a_verdict(p_value: float, phrase: str) -> None:
-    assert phrase in ev.paired_summary("A", "B", 10, 2, p_value)
+def test_paired_table_keeps_tool_calling_and_irrelevance_apart() -> None:
+    failures = {
+        "A": [{"id": "simple_python_1", "test_category": "simple_python"}],
+        "B": [{"id": "irrelevance_1", "test_category": "irrelevance"}],
+    }
+    table = ev.paired_table(failures, [("A", "B")])
+    assert "| tool calling | A vs B | 0 | 1 | 1.000 | could be chance |" in table
+    assert "| irrelevance | A vs B | 1 | 0 | 1.000 | could be chance |" in table
+
+
+@pytest.mark.parametrize(("p_value", "expected"), [(0.01, "real difference"), (0.5, "could be chance")])
+def test_verdict(p_value: float, expected: str) -> None:
+    assert ev.verdict(p_value) == expected

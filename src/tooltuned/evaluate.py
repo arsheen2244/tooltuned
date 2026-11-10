@@ -7,6 +7,7 @@ import math
 import urllib.request
 import zipfile
 from pathlib import Path
+from typing import Any
 
 SCORE_FILE_NAME = "data_non_live.csv"
 
@@ -126,13 +127,23 @@ def raw_output(entry: dict) -> str:
     return str(entry.get("model_result_raw", entry.get("model_result", "")))
 
 
+def _sub_error_types(value: Any) -> list[str]:
+    """Every `sub_error_type` nested anywhere in a BFCL error value."""
+    if isinstance(value, dict):
+        own = [value["sub_error_type"]] if "sub_error_type" in value else []
+        return own + [t for item in value.values() for t in _sub_error_types(item)]
+    if isinstance(value, list):
+        return [t for item in value for t in _sub_error_types(item)]
+    return []
+
+
 def _error_types(entry: dict) -> list[str]:
-    """The entry's error type, plus the inner one BFCL keeps for unmatched parallel calls."""
-    types = [entry.get("error_type", "")]
-    error = entry.get("error")
-    details = error.values() if isinstance(error, dict) else []
-    types += [d.get("sub_error_type", "") for d in details if isinstance(d, dict)]
-    return types
+    """The entry's error type, then the inner ones BFCL keeps for unmatched parallel calls.
+
+    For parallel calls BFCL stores `error` as a list: a message, then one dictionary per
+    model call, each with its own `sub_error_type`.
+    """
+    return [entry.get("error_type", ""), *_sub_error_types(entry.get("error"))]
 
 
 def classify_failure(entry: dict) -> str:
@@ -141,16 +152,24 @@ def classify_failure(entry: dict) -> str:
         return CALLED_WHEN_IT_SHOULD_NOT
     if "<tool_call>" not in raw_output(entry):
         return DID_NOT_CALL
-    types = _error_types(entry)
-    if types[0].startswith("ast_decoder:") or not entry.get("model_result_decoded", True):
+    main, *subs = _error_types(entry)
+    if main.startswith("ast_decoder:") or not entry.get("model_result_decoded", True):
         return BAD_FORMAT
-    if any(t.endswith(":wrong_func_name") for t in types):
-        return WRONG_FUNCTION
-    if types[0].endswith(":wrong_count"):
+    if main.endswith(":wrong_count"):
         return WRONG_COUNT
-    if any(t.startswith(("type_error:", "value_error:")) or t.endswith(ARGUMENT_ERRORS) for t in types):
+    # Parallel calls are compared with every expected call, so a right function can still
+    # fail on the name against the other expected call. Only all-name failures are wrong
+    # functions; any argument error means a call found its function but got arguments wrong.
+    found = subs if main.endswith(":cannot_find_match") else [main]
+    if any(_is_argument_error(t) for t in found):
         return WRONG_ARGUMENTS
+    if found and all(t.endswith(":wrong_func_name") for t in found):
+        return WRONG_FUNCTION
     return OTHER
+
+
+def _is_argument_error(error_type: str) -> bool:
+    return error_type.startswith(("type_error:", "value_error:")) or error_type.endswith(ARGUMENT_ERRORS)
 
 
 def count_failure_types(failures: list[dict]) -> dict[str, int]:
@@ -233,15 +252,34 @@ def failure_table(counts: dict[str, dict[str, int]]) -> str:
     return "\n".join(lines)
 
 
-def paired_summary(name_a: str, name_b: str, only_a: int, only_b: int, p_value: float) -> str:
-    """One sentence on whether two models really differ, from a paired comparison."""
-    verdict = (
-        "a split this uneven is unlikely to be chance"
-        if p_value < 0.05
-        else "a split like this could easily be chance, so the two are not shown to differ"
-    )
-    return (
-        f"On the same 1,240 questions, {name_a} got {only_a} right that {name_b} missed, and "
-        f"{name_b} got {only_b} right that {name_a} missed (exact McNemar p = {p_value:.3f}): "
-        f"{verdict}."
-    )
+QUESTION_GROUPS: dict[str, tuple[str, ...]] = {
+    "tool calling": ("simple_python", "multiple", "parallel", "parallel_multiple"),
+    "irrelevance": ("irrelevance",),
+}
+
+
+def failures_in(failures: list[dict], categories: tuple[str, ...]) -> list[dict]:
+    return [entry for entry in failures if entry.get("test_category") in categories]
+
+
+def verdict(p_value: float) -> str:
+    return "real difference" if p_value < 0.05 else "could be chance"
+
+
+def paired_table(failures: dict[str, list[dict]], pairs: list[tuple[str, str]]) -> str:
+    """Paired comparisons per question group, kept apart because the groups move in opposite
+    directions: pooling them would let gains and losses cancel out."""
+    lines = [
+        "| Questions | Comparison | Only first right | Only second right | p-value | Verdict |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for group, categories in QUESTION_GROUPS.items():
+        for first, second in pairs:
+            only_a, only_b, p_value = paired_comparison(
+                failures_in(failures[first], categories), failures_in(failures[second], categories)
+            )
+            p_text = "<0.001" if p_value < 0.001 else f"{p_value:.3f}"
+            lines.append(
+                f"| {group} | {first} vs {second} | {only_a} | {only_b} | {p_text} | {verdict(p_value)} |"
+            )
+    return "\n".join(lines)

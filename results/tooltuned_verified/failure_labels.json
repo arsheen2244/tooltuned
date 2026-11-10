@@ -1,0 +1,105 @@
+{
+  "labelled_by": "Claude (AI assistant), from reading each failure with its tools; not yet reviewed by hand",
+  "labels": [
+    {
+      "id": "irrelevance_206",
+      "label": "near-miss tool",
+      "note": "Called a weapon finder for a 'best character' question; also invented player_level."
+    },
+    {
+      "id": "irrelevance_119",
+      "label": "near-miss tool",
+      "note": "Wrote its own quote, then ran sentiment analysis on it."
+    },
+    {
+      "id": "parallel_158",
+      "label": "wrong number of calls",
+      "note": "2 calls instead of 4: did not repeat each distribution."
+    },
+    {
+      "id": "multiple_94",
+      "label": "wrong argument value",
+      "note": "roomType 'suite' dropped 'with queen size bed'."
+    },
+    {
+      "id": "multiple_40",
+      "label": "dropped function-name prefix",
+      "note": "Called biot_savart_law without 'electromagnetism.'."
+    },
+    {
+      "id": "irrelevance_237",
+      "label": "near-miss tool",
+      "note": "Route tool with an empty start point for a 'nearest pharmacy' question."
+    },
+    {
+      "id": "irrelevance_189",
+      "label": "near-miss tool",
+      "note": "Top-ranked basketball player instead of who LeBron James is."
+    },
+    {
+      "id": "irrelevance_181",
+      "label": "near-miss tool",
+      "note": "Last Real Madrid vs Barcelona result for 'who played in La Liga'."
+    },
+    {
+      "id": "parallel_multiple_91",
+      "label": "multi-step maths not carried through",
+      "note": "Used 14000 instead of the 10% biomass energy (1400) for work."
+    },
+    {
+      "id": "irrelevance_127",
+      "label": "BFCL answer debatable",
+      "note": "sentiment_analysis.twitter on the new iPhone seems to answer the question."
+    },
+    {
+      "id": "irrelevance_126",
+      "label": "near-miss tool",
+      "note": "Happiness index per invented income group; can't show cause and effect."
+    },
+    {
+      "id": "irrelevance_184",
+      "label": "near-miss tool",
+      "note": "Stats for a guessed player instead of who won the MVP."
+    },
+    {
+      "id": "multiple_22",
+      "label": "dropped function-name prefix",
+      "note": "Called most_points_single_game without its prefix and without league."
+    },
+    {
+      "id": "multiple_7",
+      "label": "wrong number of calls",
+      "note": "Added an impact-analysis call; also location 'Woodland'."
+    },
+    {
+      "id": "simple_python_375",
+      "label": "wrong argument value",
+      "note": "Mixed the two accepted forms: 'eggs' with quantity 24."
+    },
+    {
+      "id": "irrelevance_121",
+      "label": "BFCL answer debatable",
+      "note": "get_disease_info for motor neuron diseases seems to answer the question."
+    },
+    {
+      "id": "multiple_10",
+      "label": "wrong argument value",
+      "note": "Swapped db_name and table; 'email_address' instead of 'email'."
+    },
+    {
+      "id": "parallel_multiple_87",
+      "label": "multi-step maths not carried through",
+      "note": "time 7 instead of the total 12 seconds."
+    },
+    {
+      "id": "multiple_24",
+      "label": "wrong number of calls",
+      "note": "Added a call to a function that doesn't exist (calculate_distance)."
+    },
+    {
+      "id": "simple_python_163",
+      "label": "wrong argument value",
+      "note": "Left out include_owner although the user asked for owner information."
+    }
+  ]
+}

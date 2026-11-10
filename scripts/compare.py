@@ -16,8 +16,7 @@ from tooltuned.evaluate import (  # noqa: E402
     count_failure_types,
     failure_table,
     load_failures,
-    paired_comparison,
-    paired_summary,
+    paired_table,
     read_score_row,
 )
 
@@ -35,16 +34,19 @@ def label_section() -> list[str]:
     """The most common hand-labelled failure types, if the labels exist yet."""
     if not LABELS.exists():
         return ["_Not labelled yet._"]
-    labels = [item["label"] for item in json.loads(LABELS.read_text(encoding="utf-8"))]
-    lines = [f"From {len(labels)} randomly chosen failures of the verified model:", ""]
-    lines += [f"{rank}. **{label}**: {count}" for rank, (label, count) in enumerate(Counter(labels).most_common(4), 1)]
+    data = json.loads(LABELS.read_text(encoding="utf-8"))
+    labels = [item["label"] for item in data["labels"]]
+    lines = [f"From {len(labels)} randomly chosen failures of the verified model "
+             f"(labelled by {data['labelled_by']}):", ""]
+    ranked = Counter(labels).most_common()
+    cutoff = ranked[min(3, len(ranked) - 1)][1]  # keep the top 4, plus anything tied with the 4th
+    lines += [f"- **{label}**: {count}" for label, count in ranked if count >= cutoff]
     return lines
 
 
 def build_report() -> str:
     rows = {name: read_score_row(folder) for name, folder in MODELS.items()}
     failures = {name: load_failures(folder) for name, folder in MODELS.items()}
-    only_v, only_u, p_value = paired_comparison(failures["Verified"], failures["Unverified"])
     sections = [
         "# Results",
         "",
@@ -54,9 +56,16 @@ def build_report() -> str:
         "",
         comparison_table(rows),
         "",
-        "## Did verification help?",
+        "## Are the differences real?",
         "",
-        paired_summary("Verified", "Unverified", only_v, only_u, p_value),
+        "Each pair of models answered the same questions, so this counts the questions only one "
+        "of the two got right and runs an exact McNemar test: the chance of a split at least this "
+        "uneven if neither model were better. Below 0.05 is read as a real difference. Tool-calling "
+        "and irrelevance questions are tested apart, because fine-tuning moved them in opposite "
+        "directions. The test covers question-to-question luck only, not training luck: each model "
+        "was trained once.",
+        "",
+        paired_table(failures, [("Verified", "Base"), ("Unverified", "Base"), ("Verified", "Unverified")]),
         "",
         "## Failure types",
         "",
@@ -64,7 +73,7 @@ def build_report() -> str:
         "",
         failure_table({name: count_failure_types(items) for name, items in failures.items()}),
         "",
-        "## Hand-labelled failures",
+        "## Labelled failures",
         "",
         *label_section(),
     ]

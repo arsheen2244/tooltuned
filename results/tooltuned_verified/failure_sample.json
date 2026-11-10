@@ -1,0 +1,182 @@
+[
+  {
+    "id": "irrelevance_206",
+    "category": "irrelevance",
+    "question": "Find the best character to use against a dragon in DragonSlayer game.",
+    "expected": "No tool call: none of the given functions can answer this.",
+    "model_output": "<tool_call>\n{\"name\": \"game.find_best_weapon\", \"arguments\": {\"player_level\": 10, \"enemy_type\": \"dragon\", \"inventory\": []}}\n</tool_call>",
+    "bfcl_error": "irrelevance_error:decoder_success",
+    "auto_type": "called a tool when it shouldn't"
+  },
+  {
+    "id": "irrelevance_119",
+    "category": "irrelevance",
+    "question": "Tell me a famous quote about life.",
+    "expected": "No tool call: none of the given functions can answer this.",
+    "model_output": "<tool_call>\n{\"name\": \"sentiment_analysis\", \"arguments\": {\"text\": \"A journey of a thousand miles begins with a single step.\", \"model\": \"gpt-4\"}}\n</tool_call>",
+    "bfcl_error": "irrelevance_error:decoder_success",
+    "auto_type": "called a tool when it shouldn't"
+  },
+  {
+    "id": "parallel_158",
+    "category": "parallel",
+    "question": "You are a data scientist working on a project that requires you to generate random numbers from a normal distribution. You need to generate four random numbers: two from a normal distribution with a mean of 5 and a standard deviation of 2, and two from a normal distribution with a mean of 10 and a standard deviation of 3. How can you use the 'random.normalvariate' function to achieve this?",
+    "expected": "[{\"random.normalvariate\": {\"mu\": [5], \"sigma\": [2]}}, {\"random.normalvariate\": {\"mu\": [5], \"sigma\": [2]}}, {\"random.normalvariate\": {\"mu\": [10], \"sigma\": [3]}}, {\"random.normalvariate\": {\"mu\": [10], \"sigma\": [3]}}]",
+    "model_output": "<tool_call>\n{\"name\": \"random.normalvariate\", \"arguments\": {\"mu\": 5, \"sigma\": 2}}\n</tool_call>\n<tool_call>\n{\"name\": \"random.normalvariate\", \"arguments\": {\"mu\": 10, \"sigma\": 3}}\n</tool_call>",
+    "bfcl_error": "parallel_function_checker_no_order:wrong_count",
+    "auto_type": "wrong number of calls"
+  },
+  {
+    "id": "multiple_94",
+    "category": "multiple",
+    "question": "I want to book a suite with queen size bed for 3 nights in Hilton New York. Can you find the pricing for me?",
+    "expected": "[{\"hotel_room_pricing.get\": {\"hotelName\": [\"Hilton New York\"], \"roomType\": [\"suite with queen size bed\"], \"nights\": [3]}}]",
+    "model_output": "<tool_call>\n{\"name\": \"hotel_room_pricing.get\", \"arguments\": {\"hotelName\": \"Hilton New York\", \"roomType\": \"suite\", \"nights\": 3}}\n</tool_call>",
+    "bfcl_error": "value_error:string",
+    "auto_type": "wrong arguments"
+  },
+  {
+    "id": "multiple_40",
+    "category": "multiple",
+    "question": "Calculate the strength of magnetic field given distance is 8 meters and current is 12 Amperes?",
+    "expected": "[{\"electromagnetism.biot_savart_law\": {\"current\": [12], \"distance\": [8], \"mu0\": [1.256e-06, 1.256e-06, \"\"]}}]",
+    "model_output": "<tool_call>\n{\"name\": \"biot_savart_law\", \"arguments\": {\"current\": 12, \"distance\": 8}}\n</tool_call>",
+    "bfcl_error": "simple_function_checker:wrong_func_name",
+    "auto_type": "wrong function"
+  },
+  {
+    "id": "irrelevance_237",
+    "category": "irrelevance",
+    "question": "Where is the nearest pharmacy in Los Angeles?",
+    "expected": "No tool call: none of the given functions can answer this.",
+    "model_output": "<tool_call>\n{\"name\": \"get_route_to_location\", \"arguments\": {\"start_point\": \"\", \"end_point\": \"pharmacy\", \"transport_method\": \"Driving\"}}\n</tool_call>",
+    "bfcl_error": "irrelevance_error:decoder_success",
+    "auto_type": "called a tool when it shouldn't"
+  },
+  {
+    "id": "irrelevance_189",
+    "category": "irrelevance",
+    "question": "Who is Lebron James?",
+    "expected": "No tool call: none of the given functions can answer this.",
+    "model_output": "<tool_call>\n{\"name\": \"sports_ranking.get_top_ranked\", \"arguments\": {\"sport\": \"basketball\", \"gender\": \"male\", \"year\": 2021}}\n</tool_call>",
+    "bfcl_error": "irrelevance_error:decoder_success",
+    "auto_type": "called a tool when it shouldn't"
+  },
+  {
+    "id": "irrelevance_181",
+    "category": "irrelevance",
+    "question": "Who played in La Liga?",
+    "expected": "No tool call: none of the given functions can answer this.",
+    "model_output": "<tool_call>\n{\"name\": \"soccer_stats.get_last_match_result\", \"arguments\": {\"team1\": \"Real Madrid\", \"team2\": \"Barcelona\"}}\n</tool_call>",
+    "bfcl_error": "irrelevance_error:decoder_success",
+    "auto_type": "called a tool when it shouldn't"
+  },
+  {
+    "id": "parallel_multiple_91",
+    "category": "parallel_multiple",
+    "question": "\"Imagine you are a scientist studying the energy production of a certain type of bacteria. You have a sample of this bacteria that has consumed 5 moles of glucose (C6H12O6) and you know that the energy produced from glucose is typically 2800 kJ/mol. You also know that the bacteria's conversion efficiency, or the percentage of energy from glucose that is converted into biomass, is 10%. \n\nFirst, calculate the total energy produced by the bacteria from consuming the glucose. \n\nSecond, calculate the amount of biomass produced by the bacteria given the energy produced and the conversion efficiency. \n\nNow, imagine you are using this bacteria in a bioreactor to power a small machine. The machine needs to move a distance of 2 meters and you want to calculate the work done by the machine. \n\nThird, calculate the work done by the machine given the total energy produced by the bacteria and the distance the machine needs to move.\"",
+    "expected": "[{\"biological.calc_energy\": {\"mols\": [5.0], \"substance\": [\"C6H12O6\", \"glucose\"], \"joules_per_mol\": [2800.0, \"\"]}}, {\"biological.calc_biomass\": {\"energy\": [14000.0], \"efficiency\": [0.1, \"\"]}}, {\"physical.calc_work\": {\"energy\": [1400.0], \"distance\": [2.0]}}]",
+    "model_output": "<tool_call>\n{\"name\": \"biological.calc_energy\", \"arguments\": {\"mols\": 5, \"substance\": \"C6H12O6\", \"joules_per_mol\": 2800.0}}\n</tool_call>\n<tool_call>\n{\"name\": \"biological.calc_biomass\", \"arguments\": {\"energy\": 14000.0, \"efficiency\": 0.1}}\n</tool_call>\n<tool_call>\n{\"name\": \"physical.calc_work\", \"arguments\": {\"energy\": 14000.0, \"distance\": 2.0}}\n</tool_call>",
+    "bfcl_error": "parallel_function_checker_no_order:cannot_find_match",
+    "auto_type": "wrong arguments"
+  },
+  {
+    "id": "irrelevance_127",
+    "category": "irrelevance",
+    "question": "What's the general mood of twitter regarding the new iPhone release?",
+    "expected": "No tool call: none of the given functions can answer this.",
+    "model_output": "<tool_call>\n{\"name\": \"sentiment_analysis.twitter\", \"arguments\": {\"topic\": \"new iPhone release\", \"language\": \"English\"}}\n</tool_call>",
+    "bfcl_error": "irrelevance_error:decoder_success",
+    "auto_type": "called a tool when it shouldn't"
+  },
+  {
+    "id": "irrelevance_126",
+    "category": "irrelevance",
+    "question": "What is the effect of economic status on happiness levels?",
+    "expected": "No tool call: none of the given functions can answer this.",
+    "model_output": "<tool_call>\n{\"name\": \"get_happiness_index\", \"arguments\": {\"country\": \"United States\", \"year\": 2021, \"demographic_group\": \"high income\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"get_happiness_index\", \"arguments\": {\"country\": \"United States\", \"year\": 2021, \"demographic_group\": \"middle income\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"get_happiness_index\", \"arguments\": {\"country\": \"United States\", \"year\": 2021, \"demographic_group\": \"low income\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"get_happiness_index\", \"arguments\": {\"country\": \"United States\", \"year\": 2021, \"demographic_group\": \"total\"}}\n</tool_call>",
+    "bfcl_error": "irrelevance_error:decoder_success",
+    "auto_type": "called a tool when it shouldn't"
+  },
+  {
+    "id": "irrelevance_184",
+    "category": "irrelevance",
+    "question": "Who won the NBA Most Valuable Player in 2020?",
+    "expected": "No tool call: none of the given functions can answer this.",
+    "model_output": "<tool_call>\n{\"name\": \"sports_stats.get_player_stats\", \"arguments\": {\"player_name\": \"Kevin Durant\", \"season\": \"2020-2021\", \"league\": \"NBA\"}}\n</tool_call>",
+    "bfcl_error": "irrelevance_error:decoder_success",
+    "auto_type": "called a tool when it shouldn't"
+  },
+  {
+    "id": "multiple_22",
+    "category": "multiple",
+    "question": "What is the record for the most points scored by a single player in an NBA game?",
+    "expected": "[{\"sports_data.basketball.most_points_single_game\": {\"league\": [\"NBA\"]}}]",
+    "model_output": "<tool_call>\n{\"name\": \"most_points_single_game\", \"arguments\": {}}\n</tool_call>",
+    "bfcl_error": "simple_function_checker:wrong_func_name",
+    "auto_type": "wrong function"
+  },
+  {
+    "id": "multiple_7",
+    "category": "multiple",
+    "question": "How to assess the population growth in deer and their impact on woodland in Washington state over the past decade?",
+    "expected": "[{\"wildlife_population.assess_growth\": {\"species\": [\"deer\", \"Deer\"], \"location\": [\"Washington state\", \"WA\", \"Washington\"], \"duration\": [10]}}]",
+    "model_output": "<tool_call>\n{\"name\": \"wildlife_population.assess_growth\", \"arguments\": {\"species\": \"deer\", \"location\": \"Woodland\", \"duration\": 10}}\n</tool_call>\n<tool_call>\n{\"name\": \"ecological_impact.analyze\", \"arguments\": {\"species\": \"deer\", \"ecosystem\": \"woodland\", \"location\": \"Washington state\", \"timeframe\": 10}}\n</tool_call>",
+    "bfcl_error": "multiple_function_checker:wrong_count",
+    "auto_type": "wrong number of calls"
+  },
+  {
+    "id": "simple_python_375",
+    "category": "simple_python",
+    "question": "Check the total price for three pumpkins and two dozen eggs at Walmart.",
+    "expected": "[{\"walmart.check_price\": {\"items\": [[\"pumpkins\", \"eggs\"], [\"pumpkin\", \"dozen eggs\"]], \"quantities\": [[3, 24], [3, 2]], \"store_location\": [\"\"]}}]",
+    "model_output": "<tool_call>\n{\"name\": \"walmart.check_price\", \"arguments\": {\"items\": [\"pumpkin\", \"eggs\"], \"quantities\": [3, 24]}}\n</tool_call>",
+    "bfcl_error": "value_error:list/tuple",
+    "auto_type": "wrong arguments"
+  },
+  {
+    "id": "irrelevance_121",
+    "category": "irrelevance",
+    "question": "Find the information on motor neuron diseases",
+    "expected": "No tool call: none of the given functions can answer this.",
+    "model_output": "<tool_call>\n{\"name\": \"medical_records.get_disease_info\", \"arguments\": {\"disease_name\": \"Motor Neuron Diseases\"}}\n</tool_call>",
+    "bfcl_error": "irrelevance_error:decoder_success",
+    "auto_type": "called a tool when it shouldn't"
+  },
+  {
+    "id": "multiple_10",
+    "category": "multiple",
+    "question": "I need to delete some columns from my employees database on personal_data table. I want to remove their email addresses and social security numbers to respect privacy.",
+    "expected": "[{\"database.modify_columns\": {\"db_name\": [\"employees\"], \"table\": [\"personal_data\"], \"operation\": [\"delete\"], \"columns\": [[\"email\", \"ssn\"], [\"ssn\", \"email\"], [\"email\", \"social_security_number\"], [\"social_security_number\", \"email\"], [\"email\", \"social security number\"], [\"social security number\", \"email\"]]}}]",
+    "model_output": "<tool_call>\n{\"name\": \"database.modify_columns\", \"arguments\": {\"db_name\": \"personal_data\", \"table\": \"employees\", \"operation\": \"delete\", \"columns\": [\"email_address\", \"social_security_number\"]}}\n</tool_call>",
+    "bfcl_error": "value_error:string",
+    "auto_type": "wrong arguments"
+  },
+  {
+    "id": "parallel_multiple_87",
+    "category": "parallel_multiple",
+    "question": "\"A car is initially at rest and then starts moving with a constant acceleration of 3 m/s^2. After 5 seconds, what is its final velocity? Now, imagine a wave with a frequency of 50 Hz and a wavelength of 3 meters. What is the velocity of this wave? Going back to the car, if it continues to move with the same acceleration for another 7 seconds, what is the total distance it has traveled from the start?\"",
+    "expected": "[{\"kinematics.final_velocity\": {\"initial_velocity\": [0.0], \"time\": [5.0], \"acceleration\": [3.0]}}, {\"physics.wave_velocity\": {\"frequency\": [50.0], \"wavelength\": [3.0]}}, {\"kinematics.distance\": {\"initial_velocity\": [0.0, \"\"], \"time\": [12.0], \"acceleration\": [3.0]}}]",
+    "model_output": "<tool_call>\n{\"name\": \"kinematics.final_velocity\", \"arguments\": {\"initial_velocity\": 0, \"time\": 5, \"acceleration\": 3}}\n</tool_call>\n<tool_call>\n{\"name\": \"physics.wave_velocity\", \"arguments\": {\"frequency\": 50, \"wavelength\": 3}}\n</tool_call>\n<tool_call>\n{\"name\": \"kinematics.distance\", \"arguments\": {\"initial_velocity\": 0, \"time\": 7, \"acceleration\": 3}}\n</tool_call>",
+    "bfcl_error": "parallel_function_checker_no_order:cannot_find_match",
+    "auto_type": "wrong arguments"
+  },
+  {
+    "id": "multiple_24",
+    "category": "multiple",
+    "question": "What is the fastest route from London to Edinburgh for playing a chess championship? Also provide an estimate of the distance.",
+    "expected": "[{\"route_planner.calculate_route\": {\"start\": [\"London\"], \"destination\": [\"Edinburgh\"], \"method\": [\"fastest\", \"\"]}}]",
+    "model_output": "<tool_call>\n{\"name\": \"route_planner.calculate_route\", \"arguments\": {\"start\": \"London\", \"destination\": \"Edinburgh\", \"method\": \"fastest\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"route_planner.calculate_distance\", \"arguments\": {\"origin\": \"London\", \"destination\": \"Edinburgh\"}}\n</tool_call>",
+    "bfcl_error": "multiple_function_checker:wrong_count",
+    "auto_type": "wrong number of calls"
+  },
+  {
+    "id": "simple_python_163",
+    "category": "simple_python",
+    "question": "Provide me with the property records of my house located at 123 main street, with parcel number 1234567890 in Santa Clara county. Include owners information in the response.",
+    "expected": "[{\"property_records.get\": {\"address\": [\"123 main street\"], \"parcel_number\": [\"1234567890\"], \"county\": [\"Santa Clara\"], \"include_owner\": [true]}}]",
+    "model_output": "<tool_call>\n{\"name\": \"property_records.get\", \"arguments\": {\"address\": \"123 Main Street\", \"parcel_number\": \"1234567890\", \"county\": \"Santa Clara\"}}\n</tool_call>",
+    "bfcl_error": "simple_function_checker:missing_optional",
+    "auto_type": "wrong arguments"
+  }
+]
