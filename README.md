@@ -130,4 +130,4 @@ python scripts/compare.py
 
 ## License
 
-The model inherits the Apache 2.0 license from Qwen2.5. The training data is derived from [`Salesforce/xlam-function-calling-60k`](https://huggingface.co/datasets/Salesforce/xlam-function-calling-60k) (CC-BY-4.0); see its dataset card for its terms.
+The code is released under the [MIT license](LICENSE). The model inherits the Apache 2.0 license from Qwen2.5. The training data is derived from [`Salesforce/xlam-function-calling-60k`](https://huggingface.co/datasets/Salesforce/xlam-function-calling-60k) (CC-BY-4.0); see its dataset card for its terms.
