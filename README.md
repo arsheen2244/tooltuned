@@ -44,7 +44,7 @@ flowchart TB
         direction LR
         E[QLoRA training] --> F[Merge adapter] --> G[BFCL vs base model]
     end
-    D --> E
+    laptop --> kaggle
 ```
 
 **1. Data** (CPU, on a laptop). The 60,000 rows of [`Salesforce/xlam-function-calling-60k`](https://huggingface.co/datasets/Salesforce/xlam-function-calling-60k) are checked against their own tool definitions: the function and its parameters exist, required parameters are present, and the values match the declared types. 58,485 rows pass. 6,498 no-tool examples pair a request with clearly unrelated tools and a reply that declines to call them. Rows too close to any of the 1,240 BFCL test questions are removed, using character 8-grams: 4,036 tool-call and 400 no-tool rows. The training set is 10,000 rows (10% no-tool), plus 500 for validation. The counts are in [`results/data_report.json`](results/data_report.json).
