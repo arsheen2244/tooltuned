@@ -1,4 +1,18 @@
-# ToolTuned
+<div align="center">
+
+# 🛠️ ToolTuned
+
+**QLoRA fine‑tuning of Qwen2.5‑1.5B for more accurate function calling, measured on BFCL on a free T4 GPU.**
+
+[![Model](https://img.shields.io/badge/🤗%20Model-tooltuned--qwen2.5--1.5b-FFD21E)](https://huggingface.co/asheeee24/tooltuned-qwen2.5-1.5b)
+[![Demo](https://img.shields.io/badge/🤗%20Space-demo-FF9D00)](https://huggingface.co/spaces/asheeee24/tooltuned-demo)
+![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white)
+![Transformers](https://img.shields.io/badge/Transformers-PEFT%20·%20TRL-FFD21E?logo=huggingface&logoColor=black)
+![QLoRA](https://img.shields.io/badge/QLoRA-4--bit%20bitsandbytes-6e40c9)
+![W&B](https://img.shields.io/badge/Weights%20%26%20Biases-FFBE00?logo=weightsandbiases&logoColor=black)
+![Kaggle](https://img.shields.io/badge/Kaggle-T4%20GPU-20BEFF?logo=kaggle&logoColor=white)
+
+</div>
 
 [![Tests](https://github.com/arsheen2244/tooltuned/actions/workflows/tests.yml/badge.svg)](https://github.com/arsheen2244/tooltuned/actions/workflows/tests.yml)
 
@@ -32,6 +46,16 @@ The trade shows in the failure counts: "didn't call a tool when it should" fell 
 
 These are not official leaderboard results. BFCL has no built-in Qwen2.5 entry, so [`scripts/bfcl_cli.py`](scripts/bfcl_cli.py) registers one that builds prompts with Qwen's chat template. BFCL counts categories that weren't run as 0, so the overall accuracy columns in its CSV files understate every model and shouldn't be quoted.
 
+```mermaid
+xychart-beta
+    title "BFCL accuracy (%): base vs verified fine-tune"
+    x-axis ["simple_python", "multiple", "parallel", "parallel_multiple", "irrelevance"]
+    y-axis "Accuracy %" 50 --> 95
+    bar [86.5, 84.0, 74.5, 72.5, 72.5]
+    line [87.5, 87.0, 78.0, 75.5, 57.92]
+```
+<sub>Bars = base model · line = verified fine‑tune. It gains on every tool‑calling category and loses on `irrelevance`.</sub>
+
 ## How it works
 
 ```mermaid
@@ -56,6 +80,18 @@ flowchart TB
 Training took 3 h 48 min. Validation loss on 487 held-out rows fell from 0.0240 at step 200 to 0.0191, and stayed flat over the last 400 updates, so the model did not overfit. The numbers are in [`loss_history.json`](results/tooltuned_verified/loss_history.json).
 
 **3. Evaluation** (Kaggle T4). The adapter is merged into the base model, which is checked to make a correct tool call, then scored with `bfcl-eval` and vLLM in a separate Python 3.11 environment. Every model uses the same BFCL handler, prompt format and output parser.
+
+## 🧰 Tech stack
+
+| Layer | Technology |
+|------|-----------|
+| Base model | `Qwen/Qwen2.5-1.5B-Instruct` |
+| Fine‑tuning | PyTorch, 🤗 Transformers, PEFT (LoRA), TRL `SFTTrainer`, bitsandbytes 4‑bit (QLoRA), Accelerate |
+| Data | 🤗 Datasets + a custom `verify.py` data filter |
+| Evaluation | Berkeley Function Calling Leaderboard (BFCL) with a custom Qwen handler, paired McNemar tests |
+| Tracking | Weights & Biases |
+| Compute | Free Kaggle T4 GPU (fp16) |
+| Delivery | Hugging Face Hub model card and a Gradio Space demo, pytest + GitHub Actions CI |
 
 ## Limitations and next steps
 
